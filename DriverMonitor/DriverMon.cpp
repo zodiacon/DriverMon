@@ -116,7 +116,6 @@ NTSTATUS DriverMonDeviceControl(PDEVICE_OBJECT, PIRP Irp) {
 
         if (oldEvent)
             ObDereferenceObject(oldEvent);
-        information = sizeof(HANDLE);
         break;
     }
 
@@ -149,9 +148,6 @@ NTSTATUS DriverMonDeviceControl(PDEVICE_OBJECT, PIRP Irp) {
             break;
         }
         status = RemoveDriver(*(PVOID*)Irp->AssociatedIrp.SystemBuffer);
-        if (NT_SUCCESS(status)) {
-            information = sizeof(PVOID);
-        }
         break;
 
     case DriverMonIoctls::RemoveAll:
@@ -287,7 +283,6 @@ NTSTATUS DriverMonGenericDispatch(PDEVICE_OBJECT DeviceObject, PIRP Irp) {
                 globals.DataBuffer->Write(&info, info.Size);
                 if (globals.NotifyEvent)
                     KeSetEvent(globals.NotifyEvent, 2, FALSE);
-                break;
             }
 
             return globals.Drivers[i].MajorFunction[stack->MajorFunction](DeviceObject, Irp);
