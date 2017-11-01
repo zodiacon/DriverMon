@@ -138,7 +138,7 @@ NTSTATUS DriverMonDeviceControl(PDEVICE_OBJECT, PIRP Irp) {
         }
         status = AddDriver(driverName, (PVOID*)Irp->AssociatedIrp.SystemBuffer);
         if (NT_SUCCESS(status)) {
-            information = inputLen;
+            information = sizeof(PVOID);
         }
         break;
     }

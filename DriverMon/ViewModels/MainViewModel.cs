@@ -127,7 +127,8 @@ namespace DriverMon.ViewModels {
                 _driversd.Clear();
 
                 foreach (var driver in _drivers.Where(d => d.IsMonitored)) {
-                    var result = _driver.AddDriver(@"\driver\" + driver.Name);
+                    string driverName = @"\driver\" + driver.Name;
+                    var result = _driver.AddDriver(driverName);
                     if (result == IntPtr.Zero) {
                         UI.MessageBoxService.ShowMessage($"Failed to hook driver {driver.Name}", App.Title);
                     }

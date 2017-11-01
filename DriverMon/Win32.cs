@@ -57,6 +57,11 @@ namespace DriverMon {
         [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
         public unsafe static extern bool DeviceIoControl(SafeFileHandle hDevice, int controlCode, void* address, int inputSize,
                 byte[] buffer, int outputSize, out int returned, NativeOverlapped* overlapped = null);
+
+        [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
+        public unsafe static extern bool DeviceIoControl(SafeFileHandle hDevice, int controlCode, string text, int inputSize,
+                out IntPtr result, int outputSize, out int returned, NativeOverlapped* overlapped = null); 
+
         [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
         public unsafe static extern bool DeviceIoControl(SafeFileHandle hDevice, int controlCode, void* address, int inputSize,
                 out IntPtr buffer, int outputSize, out int returned, NativeOverlapped* overlapped = null);

@@ -236,12 +236,9 @@ namespace DriverMon {
         }
 
         public unsafe IntPtr AddDriver(string name) {
-            fixed (char* sname = name) {
-                IntPtr driver;
-                if (DeviceIoControl(_handle, IoctlAddDriver, sname, name.Length * 2 + 2, out driver, IntPtr.Size, out var returned))
-                    return driver;
-                return IntPtr.Zero;
-            }
+            if (DeviceIoControl(_handle, IoctlAddDriver, name, name.Length * 2 + 2, out var driver, IntPtr.Size, out var returned))
+                return driver;
+            return IntPtr.Zero;
         }
 
         public unsafe bool RemoveDriver(string name) {
