@@ -1,0 +1,24 @@
+﻿<Application x:Class="DriverMon.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:DriverMon"
+             xmlns:vm="clr-namespace:DriverMon.ViewModels"
+             >
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Colors.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/Cobalt.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseLight.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <DataTemplate DataType="{x:Type vm:AccentViewModel}">
+                <StackPanel Orientation="Horizontal">
+                    <Ellipse Width="18" Height="18" Fill="{Binding Brush}" Stroke="Black" StrokeThickness="1" />
+                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Margin="8,0,0,0" />
+                </StackPanel>
+            </DataTemplate>
+        </ResourceDictionary>         
+    </Application.Resources>
+</Application>
