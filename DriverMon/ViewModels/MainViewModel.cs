@@ -19,6 +19,7 @@ using DriverMon.Views;
 using System.Windows.Data;
 using Syncfusion.Data;
 using MahApps.Metro;
+using DriverMon.Models;
 
 namespace DriverMon.ViewModels {
     class MainViewModel : BindableBase, IDisposable {
@@ -27,7 +28,9 @@ namespace DriverMon.ViewModels {
         readonly ObservableCollection<IrpArrivedViewModel> _requests = new ObservableCollection<IrpArrivedViewModel>();
         readonly Dictionary<IntPtr, DriverViewModel> _driversd = new Dictionary<IntPtr, DriverViewModel>(8);
         List<DriverViewModel> _drivers;
+        Settings _settings;
 
+        public Settings Settings => _settings;
         public ObservableCollection<IrpArrivedViewModel> Requests => _requests;
         public IList<DriverViewModel> Drivers => _drivers;
         public int MonitoredDrivers => _driversd.Count;
@@ -41,21 +44,28 @@ namespace DriverMon.ViewModels {
             if (_currentAccent != null)
                 _currentAccent.IsCurrent = false;
             _currentAccent = accent;
+            Settings.AccentColor = accent.Name;
             //_settings.AccentName = _currentAccent.Name;
             accent.IsCurrent = true;
             RaisePropertyChanged(nameof(CurrentAccent));
         }, accent => accent != _currentAccent).ObservesProperty(() => CurrentAccent);
 
         public bool IsAlwaysOnTop {
-            get => Application.Current.MainWindow.Topmost;
-            set => Application.Current.MainWindow.Topmost = value;
+            get => Settings.Topmost;
+            set => Application.Current.MainWindow.Topmost = Settings.Topmost = value;
         }
 
         public MainViewModel(IUIServices ui) {
             UI = ui;
         }
 
-        public ICommand OnLoad => new DelegateCommand(async () => await StartDriver());
+        public ICommand OnLoad => new DelegateCommand(async () => {
+            LoadSettings();
+            IsAlwaysOnTop = Settings.Topmost;
+            ChangeAccentCommand.Execute(Accents.First(acc => acc.Name == _settings.AccentColor));
+
+            await StartDriver();
+        });
 
         private async Task InstallAndLoadDriverAsync() {
             var status = await DriverInterface.LoadDriverAsync("DriverMon");
@@ -175,7 +185,37 @@ namespace DriverMon.ViewModels {
             }
         }
 
+        public ICommand ClearAllCommand => new DelegateCommand(() => {
+            Requests.Clear();
+        });
+
         public int FilteredCount => View.Records.Count;
+
+        private void LoadSettings() {
+            try {
+                using (var stm = File.OpenRead(GetSettingsFile())) {
+                    _settings = Helpers.Load<Settings>(stm);
+                }
+            }
+            catch (Exception) {
+            }
+
+            if (_settings == null)
+                _settings = new Settings();
+        }
+
+        string GetSettingsFile() {
+            return Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\DriverMon.settings.xml";
+        }
+
+        public void Save() {
+            var filename = GetSettingsFile();
+            if (File.Exists(filename))
+                File.Delete(filename);
+            using (var stm = File.OpenWrite(filename)) {
+                Helpers.Save(stm, _settings);
+            }
+        }
 
     }
 }
