@@ -9,16 +9,19 @@
         xmlns:c="clr-namespace:DriverMon.Controls"
         mc:Ignorable="d" TitleCaps="False" Icon="/icons/drivers.ico"
         Title="Drivers" Height="500" SizeToContent="Width" ResizeMode="NoResize"
-                   BorderBrush="{DynamicResource AccentColorBrush}" BorderThickness="1">
+                   BorderBrush="{DynamicResource AccentColorBrush}" BorderThickness="1" WindowStartupLocation="CenterScreen">
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition />
             <RowDefinition Height="20" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="20" />
         </Grid.RowDefinitions>
-        <sf:SfDataGrid ItemsSource="{Binding Drivers}" AutoGenerateColumns="False" SelectionMode="Single" Loaded="OnGridLoaded"
-                       NavigationMode="Row">
+        <TextBox Text="{Binding FilterText, Delay=100, UpdateSourceTrigger=PropertyChanged}" Width="300" Margin="2" HorizontalAlignment="Left"
+                 metro:TextBoxHelper.Watermark="Type to filter" metro:TextBoxHelper.ClearTextButton="True"/>
+        <sf:SfDataGrid Grid.Row="1" ItemsSource="{Binding Drivers}" AutoGenerateColumns="False" SelectionMode="Single" Loaded="OnGridLoaded"
+                       NavigationMode="Row" Style="{StaticResource SfDataGridStyle}" BindableView="{Binding View, Mode=OneWayToSource}">
             <sf:SfDataGrid.Columns>
                 <sf:GridCheckBoxColumn HeaderText="Monitor?" MappingName="IsMonitored" Width="100" AllowEditing="True" />
                 <sf:GridTextColumn HeaderText="Name" MappingName="Name" Width="200"/>
@@ -26,6 +29,6 @@
             </sf:SfDataGrid.Columns>
         </sf:SfDataGrid>
 
-        <c:OKCancel Grid.Row="2" />
+        <c:OKCancel Grid.Row="3" />
     </Grid>
 </metro:MetroWindow>

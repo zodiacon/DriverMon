@@ -7,6 +7,7 @@
              xmlns:metro="http://metro.mahapps.com/winfx/xaml/controls"
              xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
              xmlns:sf="http://schemas.syncfusion.com/wpf"
+             xmlns:glob="clr-namespace:System.Globalization;assembly=mscorlib"
              xmlns:ie="http://schemas.microsoft.com/expression/2010/interactions"
              xmlns:z="http://zodiacon.wpf/2016"
              mc:Ignorable="d" 
@@ -42,32 +43,41 @@
         
         <sf:SfDataGrid Grid.Row="3" ItemsSource="{Binding Requests}" AutoGenerateColumns="False" AllowResizingColumns="True"
                        SelectionMode="Extended" NavigationMode="Row" AllowTriStateSorting="True" FontSize="11"
-                       RowSelectionBrush="{DynamicResource AccentColorBrush}" Loaded="OnGridLoaded" BindableView="{Binding View, Mode=OneWayToSource}"
+                       Loaded="OnGridLoaded" BindableView="{Binding View, Mode=OneWayToSource}" Style="{StaticResource SfDataGridStyle}"
                        ColumnSizer="Auto" x:Name="_dataGrid" DataContextChanged="OnDataContextChanged"
-                       RowHoverHighlightingBrush="{DynamicResource AccentColorBrush2}" >
+                       >
             <sf:SfDataGrid.AutoScroller>
                 <sf:AutoScroller AutoScrolling="Vertical" IsEnabled="True" />
             </sf:SfDataGrid.AutoScroller>
             <sf:SfDataGrid.Columns>
                 <sf:GridTextColumn HeaderText="#" MappingName="Index" MinimumWidth="30" Width="60" />
-                <sf:GridDateTimeColumn HeaderText="Time" MappingName="Time" Pattern="LongTime" MinimumWidth="60" Width="120" />
+                <sf:GridDateTimeColumn HeaderText="Time" MappingName="Time" Pattern="LongTime" MinimumWidth="60" Width="120" TextAlignment="Center">
+                    <sf:GridDateTimeColumn.DateTimeFormat>
+                        <glob:DateTimeFormatInfo LongTimePattern="HH:mm:ss.fff" />
+                    </sf:GridDateTimeColumn.DateTimeFormat>
+                </sf:GridDateTimeColumn>
                 <sf:GridTextColumn HeaderText="Driver" MappingName="DriverName" MinimumWidth="60" Width="100" />
                 <sf:GridTextColumn HeaderText="PID" MappingName="ProcessId" MinimumWidth="60" Width="80" TextAlignment="Center" />
                 <sf:GridTextColumn HeaderText="Process Name" MappingName="ProcessName" MinimumWidth="80" Width="110" />
                 <sf:GridTextColumn HeaderText="TID" MappingName="ThreadId" MinimumWidth="60" Width="80" TextAlignment="Center" />
                 <sf:GridTextColumn HeaderText="Major Function" MappingName="MajorCode" MinimumWidth="50" Width="120" />
                 <sf:GridTextColumn HeaderText="Minor Function" MappingName="MinorCode" MinimumWidth="50" Width="120" />
-                <sf:GridTemplateColumn HeaderText="Device Object" MappingName="DeviceObject" MinimumWidth="50" Width="130" TextAlignment="Center">
+                <sf:GridTemplateColumn HeaderText="Device Object" MappingName="DeviceObject" MinimumWidth="50" Width="130" >
                     <sf:GridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding DeviceObject, StringFormat=0x\{0:X\}}" />
+                            <TextBlock Text="{Binding DeviceObject, StringFormat=0x\{0:X\}}" TextAlignment="Center"/>
                         </DataTemplate>
                     </sf:GridTemplateColumn.CellTemplate>
                 </sf:GridTemplateColumn>
+                <sf:GridTextColumn HeaderText="Details" MappingName="Details" AllowSorting="False" MinimumWidth="100" Width="300" />
             </sf:SfDataGrid.Columns>
         </sf:SfDataGrid>
         <StatusBar Grid.Row="4">
             <TextBlock Text="{Binding Requests.Count, StringFormat=\{0\} Items}" />
+            <Separator />
+            <TextBlock Text="{Binding FilteredCount, StringFormat=\{0\} Filtered Items}" />
+            <Separator />
+            <TextBlock Text="{Binding MonitoredDrivers, StringFormat=\{0\} Monitored Drivers}" />
         </StatusBar>
     </Grid>
 </UserControl>

@@ -30,6 +30,7 @@ namespace DriverMon.ViewModels {
 
         public ObservableCollection<IrpArrivedViewModel> Requests => _requests;
         public IList<DriverViewModel> Drivers => _drivers;
+        public int MonitoredDrivers => _driversd.Count;
 
         AccentViewModel[] _accents;
         public AccentViewModel[] Accents => _accents ?? (_accents = ThemeManager.Accents.Select(accent => new AccentViewModel(accent)).ToArray());
@@ -55,15 +56,6 @@ namespace DriverMon.ViewModels {
         }
 
         public ICommand OnLoad => new DelegateCommand(async () => await StartDriver());
-
-        public ICommand StartMonitoringCommand => new DelegateCommand(() => {
-            var driver = _driver.AddDriver(@"\driver\disk");
-            if (driver == IntPtr.Zero) {
-                UI.MessageBoxService.ShowMessage($"Error: {Marshal.GetLastWin32Error()}", App.Title);
-                return;
-            }
-            _driver.StartMonitoring();
-        });
 
         private async Task InstallAndLoadDriverAsync() {
             var status = await DriverInterface.LoadDriverAsync("DriverMon");
@@ -112,9 +104,7 @@ namespace DriverMon.ViewModels {
                     p += info->Header.Size;
                 } while (size > sizeof(CommonInfoHeader));
             }
-
-            if (AutoScroll) {
-            }
+            RaisePropertyChanged(nameof(FilteredCount));
         }
 
         public ICollectionViewAdv View { get; set; }
@@ -136,6 +126,7 @@ namespace DriverMon.ViewModels {
                         _driversd.Add(result, driver);
                     }
                 }
+                RaisePropertyChanged(nameof(MonitoredDrivers));
             }
         });
 
@@ -144,10 +135,14 @@ namespace DriverMon.ViewModels {
             get => _isMonitoring;
             set {
                 if (SetProperty(ref _isMonitoring, value)) {
-                    if (value)
+                    if (value) {
+                        Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.High;
                         _driver.StartMonitoring();
-                    else
+                    }
+                    else {
                         _driver.StopMonitoring();
+                        Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Normal;
+                    }
                 }
             }
         }
@@ -170,13 +165,17 @@ namespace DriverMon.ViewModels {
                         var text = value.ToLowerInvariant();
                         View.Filter = obj => {
                             var request = (IrpArrivedViewModel)obj;
-                            return request.DriverName.Contains(text) || request.MajorCode.ToString().ToLowerInvariant().Contains(text)
+                            return request.DriverName.ToLowerInvariant().Contains(text) || request.MajorCode.ToString().ToLowerInvariant().Contains(text)
                                 || request.ProcessName?.ToLowerInvariant().Contains(text) == true;
                         };
                     }
                     View.RefreshFilter(true);
+                    RaisePropertyChanged(nameof(FilteredCount));
                 }
             }
         }
+
+        public int FilteredCount => View.Records.Count;
+
     }
 }

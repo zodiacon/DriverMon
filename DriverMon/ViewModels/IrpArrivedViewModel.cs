@@ -51,6 +51,25 @@ namespace DriverMon.ViewModels {
                     }
                 }
             }
+
+            Details = GetDetails(info);
+        }
+
+        private unsafe string GetDetails(IrpArrivedInfoBase* info) {
+            switch (info->MajorFunction) {
+                case IrpMajorCode.READ:
+                case IrpMajorCode.WRITE:
+                    var read = (IrpArrivedInfoReadWrite*)info;
+                    return $"Offset: 0x{read->Offset:X}; Length: 0x{read->Length:X}";
+
+                case IrpMajorCode.DEVICE_CONTROL:
+                case IrpMajorCode.INTERNAL_DEVICE_CONTROL:
+                    var dc = (IrpArrivedInfoDeviceIoControl*)info;
+                    return $"Ioctl: 0x{dc->IoControlCode:X}; Input: {dc->InputBufferLength} bytes; Output: {dc->OutputBufferLength} bytes";
+
+                default:
+                    return string.Empty;
+            }
         }
 
         public string ProcessName { get; }
@@ -64,5 +83,6 @@ namespace DriverMon.ViewModels {
         public long DeviceObject { get; }
         public IntPtr Irp { get; }
         public string DriverName { get; }
+        public string Details { get; }
     }
 }

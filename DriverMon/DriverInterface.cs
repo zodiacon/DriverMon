@@ -131,6 +131,7 @@ namespace DriverMon {
         public IrpArrivedInfoBase Base;
         public uint IoControlCode;
         public uint InputBufferLength;
+        public uint OutputBufferLength;
     }
 
     struct IrpCompletedInfo {
@@ -261,7 +262,7 @@ namespace DriverMon {
 
                     var data = GetData(out var size);
                     if (data != null) {
-                        dispatcher.InvokeAsync(() => App.MainViewModel.Update(data, size));
+                        dispatcher.InvokeAsync(() => App.MainViewModel.Update(data, size), DispatcherPriority.Background);
                     }
                 }
             });
