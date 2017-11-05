@@ -254,6 +254,8 @@ NTSTATUS DriverMonGenericDispatch(PDEVICE_OBJECT DeviceObject, PIRP Irp) {
     for (int i = 0; i < MaxMonitoredDrivers; ++i) {
         if (globals.Drivers[i].DriverObject == driver) {
             if (globals.IsMonitoring && globals.NotifyEvent) {
+                NT_ASSERT(driver == DeviceObject->DriverObject);
+
                 // report operation
                 KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_TRACE_LEVEL, DRIVER_PREFIX "Driver 0x%p intercepted!\n", driver));
 
@@ -368,34 +370,42 @@ void RemoveAllDrivers() {
 NTSTATUS GetDataFromIrp(PDEVICE_OBJECT DeviceObject, PIRP Irp, PIO_STACK_LOCATION stack, IrpMajorCode code, PVOID buffer, ULONG size) {
     UNREFERENCED_PARAMETER(stack);
 
-    switch (code) {
-    case IrpMajorCode::WRITE:
-    case IrpMajorCode::READ:
-        if (Irp->MdlAddress) {
-            auto p = MmGetSystemAddressForMdlSafe(Irp->MdlAddress, NormalPagePriority);
-            if (p) {
-                ::memcpy(buffer, p, size);
+    __try {
+        switch (code) {
+        case IrpMajorCode::WRITE:
+        case IrpMajorCode::READ:
+            if (Irp->MdlAddress) {
+                auto p = MmGetSystemAddressForMdlSafe(Irp->MdlAddress, NormalPagePriority);
+                if (p) {
+                    ::memcpy(buffer, p, size);
+                    return STATUS_SUCCESS;
+                }
+                return STATUS_INSUFFICIENT_RESOURCES;
+            }
+            if (DeviceObject->Flags & DO_BUFFERED_IO) {
+                ::memcpy(buffer, Irp->AssociatedIrp.SystemBuffer, size);
                 return STATUS_SUCCESS;
             }
-            return STATUS_INSUFFICIENT_RESOURCES;
-        }
-        if (DeviceObject->Flags & DO_BUFFERED_IO) {
-            ::memcpy(buffer, Irp->AssociatedIrp.SystemBuffer, size);
+            ::memcpy(buffer, Irp->UserBuffer, size);
+            return STATUS_SUCCESS;
+
+        case IrpMajorCode::DEVICE_CONTROL:
+        case IrpMajorCode::INTERNAL_DEVICE_CONTROL:
+            if (METHOD_FROM_CTL_CODE(stack->Parameters.DeviceIoControl.IoControlCode) == METHOD_NEITHER) {
+                if (stack->Parameters.DeviceIoControl.Type3InputBuffer < (PVOID)(1 << 16)) {
+                    ::memcpy(buffer, stack->Parameters.DeviceIoControl.Type3InputBuffer, size);
+                }
+                else {
+                    return STATUS_UNSUCCESSFUL;
+                }
+            }
+            else {
+                ::memcpy(buffer, Irp->AssociatedIrp.SystemBuffer, size);
+            }
             return STATUS_SUCCESS;
         }
-        ::memcpy(buffer, Irp->UserBuffer, size);
-        return STATUS_SUCCESS;
-
-    case IrpMajorCode::DEVICE_CONTROL:
-    case IrpMajorCode::INTERNAL_DEVICE_CONTROL:
-        if (METHOD_FROM_CTL_CODE(stack->Parameters.DeviceIoControl.IoControlCode) == METHOD_NEITHER) {
-            ::memcpy(buffer, stack->Parameters.DeviceIoControl.Type3InputBuffer, size);
-        }
-        else {
-            ::memcpy(buffer, Irp->AssociatedIrp.SystemBuffer, size);
-        }
-        return STATUS_SUCCESS;
     }
-
+    __except(EXCEPTION_EXECUTE_HANDLER) {
+    }
     return STATUS_UNSUCCESSFUL;
 }

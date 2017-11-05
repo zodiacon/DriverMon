@@ -102,6 +102,8 @@ enum class IrpMinorCode : unsigned char {
 
 };
 
+#pragma pack(push, 1)
+
 enum class DataItemType : short {
     IrpArrived,
     IrpCompleted,
@@ -152,3 +154,5 @@ struct IrpCompletedInfo : CommonInfoHeader {
     long Status;
     ULONG_PTR Information;
 };
+
+#pragma pack(pop)

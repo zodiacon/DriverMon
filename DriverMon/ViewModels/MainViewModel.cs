@@ -112,12 +112,12 @@ namespace DriverMon.ViewModels {
 
                     switch (info->Type) {
                         case DataItemType.IrpArrived:
-                            var arrivedInfo = (IrpArrivedInfoBase*)p;
+                            var arrivedInfo = (IrpArrivedInfoBase*)info;
                             _requests.Add(new IrpArrivedViewModel(_requests.Count + 1, _driversd[arrivedInfo->DriverObject].Name, arrivedInfo));
                             break;
 
                         case DataItemType.IrpCompleted:
-                            var completedInfo = (IrpCompletedInfo*)p;
+                            var completedInfo = (IrpCompletedInfo*)info;
                             _requests.Add(new IrpCompletedViewModel(_requests.Count + 1, _driversd[completedInfo->DriverObject].Name, completedInfo));
                             break;
 

@@ -98,14 +98,14 @@ namespace DriverMon {
         IrpCompleted,
     }
 
-    [StructLayout(LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     struct CommonInfoHeader {
         public short Size;
         public DataItemType Type;
         public long Time;
     };
 
-    [StructLayout(LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     struct IrpArrivedInfoBase {
         public CommonInfoHeader Header;
 
@@ -121,14 +121,14 @@ namespace DriverMon {
         public int DataSize;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     struct IrpArrivedInfoReadWrite {
         public IrpArrivedInfoBase Base;
         public uint Length;
         public long Offset;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     struct IrpArrivedInfoDeviceIoControl {
         public IrpArrivedInfoBase Base;
         public uint IoControlCode;

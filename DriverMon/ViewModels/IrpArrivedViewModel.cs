@@ -55,7 +55,7 @@ namespace DriverMon.ViewModels {
             if (DataSize > 0) {
                 Data = new byte[DataSize];
                 fixed (byte* p = Data) {
-                    Buffer.MemoryCopy((byte*)info + Marshal.SizeOf<IrpArrivedInfoDeviceIoControl>(), p, DataSize, DataSize);
+                    Buffer.MemoryCopy((byte*)info + info->Header.Size - DataSize, p, DataSize, DataSize);
                 }
             }
         }
