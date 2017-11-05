@@ -292,6 +292,12 @@ NTSTATUS DriverMonGenericDispatch(PDEVICE_OBJECT DeviceObject, PIRP Irp) {
                         info->DeviceIoControl.InputBufferLength = stack->Parameters.DeviceIoControl.InputBufferLength;
                         info->DeviceIoControl.OutputBufferLength = stack->Parameters.DeviceIoControl.OutputBufferLength;
                         if (info->DeviceIoControl.InputBufferLength > 0) {
+                            auto dataSize = min(MaxDataSize, info->DeviceIoControl.InputBufferLength);
+                            if (NT_SUCCESS(GetDataFromIrp(DeviceObject, Irp, stack, info->MajorFunction, (PUCHAR)info + sizeof(IrpArrivedInfo), dataSize))) {
+                                info->DataSize = dataSize;
+                                info->Size += (USHORT)dataSize;
+                            }
+
                         }
                         break;
                     }
@@ -378,6 +384,16 @@ NTSTATUS GetDataFromIrp(PDEVICE_OBJECT DeviceObject, PIRP Irp, PIO_STACK_LOCATIO
             return STATUS_SUCCESS;
         }
         ::memcpy(buffer, Irp->UserBuffer, size);
+        return STATUS_SUCCESS;
+
+    case IrpMajorCode::DEVICE_CONTROL:
+    case IrpMajorCode::INTERNAL_DEVICE_CONTROL:
+        if (METHOD_FROM_CTL_CODE(stack->Parameters.DeviceIoControl.IoControlCode) == METHOD_NEITHER) {
+            ::memcpy(buffer, stack->Parameters.DeviceIoControl.Type3InputBuffer, size);
+        }
+        else {
+            ::memcpy(buffer, Irp->AssociatedIrp.SystemBuffer, size);
+        }
         return STATUS_SUCCESS;
     }
 

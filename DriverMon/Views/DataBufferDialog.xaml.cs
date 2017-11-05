@@ -19,6 +19,8 @@ namespace DriverMon.Views {
     public partial class DataBufferDialog {
         public DataBufferDialog() {
             InitializeComponent();
+
+            Topmost = Application.Current.MainWindow.Topmost;
         }
     }
 }
