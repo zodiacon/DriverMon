@@ -25,13 +25,13 @@ namespace DriverMon.ViewModels {
     class MainViewModel : BindableBase, IDisposable {
         DriverInterface _driver;
         readonly IUIServices UI;
-        readonly ObservableCollection<IrpArrivedViewModel> _requests = new ObservableCollection<IrpArrivedViewModel>();
+        readonly ObservableCollection<IrpViewModelBase> _requests = new ObservableCollection<IrpViewModelBase>();
         readonly Dictionary<IntPtr, DriverViewModel> _driversd = new Dictionary<IntPtr, DriverViewModel>(8);
         List<DriverViewModel> _drivers;
         Settings _settings;
 
         public Settings Settings => _settings;
-        public ObservableCollection<IrpArrivedViewModel> Requests => _requests;
+        public ObservableCollection<IrpViewModelBase> Requests => _requests;
         public IList<DriverViewModel> Drivers => _drivers;
         public int MonitoredDrivers => _driversd.Count;
 
@@ -45,7 +45,6 @@ namespace DriverMon.ViewModels {
                 _currentAccent.IsCurrent = false;
             _currentAccent = accent;
             Settings.AccentColor = accent.Name;
-            //_settings.AccentName = _currentAccent.Name;
             accent.IsCurrent = true;
             RaisePropertyChanged(nameof(CurrentAccent));
         }, accent => accent != _currentAccent).ObservesProperty(() => CurrentAccent);
@@ -108,10 +107,26 @@ namespace DriverMon.ViewModels {
             fixed (byte* bytes = data) {
                 var p = bytes;
                 do {
-                    IrpArrivedInfoBase* info = (IrpArrivedInfoBase*)p;
-                    _requests.Add(new IrpArrivedViewModel(_requests.Count + 1, _driversd[info->DriverObject].Name, info));
-                    size -= info->Header.Size;
-                    p += info->Header.Size;
+                    var info = (CommonInfoHeader*)p;
+                    Debug.Assert(info->Size > sizeof(CommonInfoHeader));
+
+                    switch (info->Type) {
+                        case DataItemType.IrpArrived:
+                            var arrivedInfo = (IrpArrivedInfoBase*)p;
+                            _requests.Add(new IrpArrivedViewModel(_requests.Count + 1, _driversd[arrivedInfo->DriverObject].Name, arrivedInfo));
+                            break;
+
+                        case DataItemType.IrpCompleted:
+                            var completedInfo = (IrpCompletedInfo*)p;
+                            _requests.Add(new IrpCompletedViewModel(_requests.Count + 1, _driversd[completedInfo->DriverObject].Name, completedInfo));
+                            break;
+
+                        default:
+                            Debug.Assert(false);
+                            break;
+                    }
+                    size -= info->Size;
+                    p += info->Size;
                 } while (size > sizeof(CommonInfoHeader));
             }
             RaisePropertyChanged(nameof(FilteredCount));
@@ -187,6 +202,14 @@ namespace DriverMon.ViewModels {
 
         public ICommand ClearAllCommand => new DelegateCommand(() => {
             Requests.Clear();
+        });
+
+        public ICommand ViewDataCommand => new DelegateCommand<IrpArrivedViewModel>(request => {
+            Debug.Assert(request.DataSize > 0);
+            Debug.Assert(request.Data != null);
+
+            var vm = UI.DialogService.CreateDialog<DataBufferViewModel, DataBufferDialog>(request);
+            vm.Show();
         });
 
         public int FilteredCount => View.Records.Count;

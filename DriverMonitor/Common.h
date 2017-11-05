@@ -123,6 +123,7 @@ struct IrpArrivedInfo : CommonInfoHeader {
     IrpMinorCode MinorFunction;
     UCHAR Irql;
     UCHAR _padding;
+    ULONG DataSize;
     union {
         struct {
             ULONG IoControlCode;

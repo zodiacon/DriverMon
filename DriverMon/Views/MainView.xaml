@@ -10,7 +10,7 @@
              xmlns:glob="clr-namespace:System.Globalization;assembly=mscorlib"
              xmlns:ie="http://schemas.microsoft.com/expression/2010/interactions"
              xmlns:z="http://zodiacon.wpf/2016"
-             mc:Ignorable="d" 
+             mc:Ignorable="d" x:Name="This"
              d:DesignHeight="300" d:DesignWidth="300">
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Loaded">
@@ -66,10 +66,30 @@
                 <sf:GridTextColumn HeaderText="TID" MappingName="ThreadId" MinimumWidth="60" Width="80" TextAlignment="Center" />
                 <sf:GridTextColumn HeaderText="Major Function" MappingName="MajorCode" MinimumWidth="50" Width="120" />
                 <sf:GridTextColumn HeaderText="Minor Function" MappingName="MinorCode" MinimumWidth="50" Width="120" />
-                <sf:GridTemplateColumn HeaderText="Device Object" MappingName="DeviceObject" MinimumWidth="50" Width="130" >
+                <sf:GridTemplateColumn HeaderText="Device Object" MappingName="DeviceObject" MinimumWidth="50" Width="130">
                     <sf:GridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding DeviceObject, StringFormat=0x\{0:X\}}" TextAlignment="Center"/>
+                        </DataTemplate>
+                    </sf:GridTemplateColumn.CellTemplate>
+                </sf:GridTemplateColumn>
+                <sf:GridTemplateColumn HeaderText="IRP" MappingName="Irp" MinimumWidth="50" Width="120">
+                    <sf:GridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Irp, StringFormat=0x\{0:X\}}" TextAlignment="Center"/>
+                        </DataTemplate>
+                    </sf:GridTemplateColumn.CellTemplate>
+                </sf:GridTemplateColumn>
+                <sf:GridTemplateColumn HeaderText="Data" MappingName="DataSize" MinimumWidth="50" Width="80">
+                    <sf:GridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Command="{Binding DataContext.ViewDataCommand, ElementName=This}" CommandParameter="{Binding}"
+                                    metro:VisibilityHelper.IsVisible="{Binding HasData}" Margin="2" Content="View">
+                                <!--<StackPanel Orientation="Horizontal">
+                                    <Image Source="/icons/view.ico" Width="16" Height="16" />
+                                    <TextBlock Margin="4,0,0,0" Text="View" VerticalAlignment="Center" FontSize="12" />
+                                </StackPanel>-->
+                            </Button>
                         </DataTemplate>
                     </sf:GridTemplateColumn.CellTemplate>
                 </sf:GridTemplateColumn>

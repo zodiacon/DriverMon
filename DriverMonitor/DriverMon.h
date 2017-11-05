@@ -41,10 +41,10 @@ const int MaxMonitoredDrivers = 16;
 
 struct DriverMonGlobals {
     MonitoredDriver Drivers[MaxMonitoredDrivers];
-    short Count;
-    bool IsMonitoring;
     CyclicBuffer* DataBuffer;
     PKEVENT NotifyEvent;
+    short Count;
+    bool IsMonitoring;
 };
 
 extern DriverMonGlobals globals;

@@ -14,6 +14,9 @@ NTSTATUS AddDriver(PCWSTR driverName, PVOID* driverObject);
 NTSTATUS RemoveDriver(PVOID DriverObject);
 NTSTATUS RemoveDriver(int index);
 NTSTATUS DriverMonGenericDispatch(PDEVICE_OBJECT, PIRP);
+NTSTATUS OnIrpCompleted(PDEVICE_OBJECT DeviceObject, PIRP Irp, PVOID context);
+NTSTATUS GetDataFromIrp(PDEVICE_OBJECT Deviceobject, PIRP Irp, PIO_STACK_LOCATION stack, IrpMajorCode code, PVOID buffer, ULONG size);
+
 void RemoveAllDrivers();
 
 DriverMonGlobals globals;
@@ -32,7 +35,7 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING /* RegistryPat
     if (globals.DataBuffer == nullptr)
         return STATUS_INSUFFICIENT_RESOURCES;
 
-    auto status = globals.DataBuffer->Init(1 << 16, NonPagedPool, DRIVER_TAG);
+    auto status = globals.DataBuffer->Init(1 << 20, NonPagedPool, DRIVER_TAG);
     if (!NT_SUCCESS(status)) {
         delete globals.DataBuffer;
         return status;
@@ -246,43 +249,63 @@ NTSTATUS DriverMonGenericDispatch(PDEVICE_OBJECT DeviceObject, PIRP Irp) {
     auto driver = DeviceObject->DriverObject;
     auto stack = IoGetCurrentIrpStackLocation(Irp);
 
+    const int MaxDataSize = 1 << 12;
+
     for (int i = 0; i < MaxMonitoredDrivers; ++i) {
         if (globals.Drivers[i].DriverObject == driver) {
             if (globals.IsMonitoring && globals.NotifyEvent) {
                 // report operation
                 KdPrintEx((DPFLTR_IHVDRIVER_ID, DPFLTR_TRACE_LEVEL, DRIVER_PREFIX "Driver 0x%p intercepted!\n", driver));
 
-                IrpArrivedInfo info;
-                info.Type = DataItemType::IrpArrived;
-                KeQuerySystemTime((PLARGE_INTEGER)&info.Time);
-                info.Size = sizeof(info);
-                info.DeviceObject = DeviceObject;
-                info.Irp = Irp;
-                info.DriverObject = driver;
-                info.MajorFunction = static_cast<IrpMajorCode>(stack->MajorFunction);
-                info.MinorFunction = static_cast<IrpMinorCode>(stack->MinorFunction);
-                info.ProcessId = HandleToULong(PsGetCurrentProcessId());
-                info.ThreadId = HandleToULong(PsGetCurrentThreadId());
-                info.Irql = KeGetCurrentIrql();
+                auto info = static_cast<IrpArrivedInfo*>(ExAllocatePoolWithTag(NonPagedPool, MaxDataSize + sizeof(IrpArrivedInfo), DRIVER_TAG));
+                if (info) {
+                    info->Type = DataItemType::IrpArrived;
+                    KeQuerySystemTime((PLARGE_INTEGER)&info->Time);
+                    info->Size = sizeof(IrpArrivedInfo);
+                    info->DeviceObject = DeviceObject;
+                    info->Irp = Irp;
+                    info->DriverObject = driver;
+                    info->MajorFunction = static_cast<IrpMajorCode>(stack->MajorFunction);
+                    info->MinorFunction = static_cast<IrpMinorCode>(stack->MinorFunction);
+                    info->ProcessId = HandleToULong(PsGetCurrentProcessId());
+                    info->ThreadId = HandleToULong(PsGetCurrentThreadId());
+                    info->Irql = KeGetCurrentIrql();
+                    info->DataSize = 0;
 
-                switch (info.MajorFunction) {
-                case IrpMajorCode::READ:
-                case IrpMajorCode::WRITE:
-                    info.Write.Length = stack->Parameters.Write.Length;
-                    info.Write.Offset = stack->Parameters.Write.ByteOffset.QuadPart;
-                    break;
+                    switch (info->MajorFunction) {
+                    case IrpMajorCode::READ:
+                    case IrpMajorCode::WRITE:
+                        info->Write.Length = stack->Parameters.Write.Length;
+                        info->Write.Offset = stack->Parameters.Write.ByteOffset.QuadPart;
+                        if (info->MajorFunction == IrpMajorCode::WRITE && info->Write.Length > 0) {
+                            auto dataSize = min(MaxDataSize, info->Write.Length);
+                            if (NT_SUCCESS(GetDataFromIrp(DeviceObject, Irp, stack, info->MajorFunction, (PUCHAR)info + sizeof(IrpArrivedInfo), dataSize))) {
+                                info->DataSize = dataSize;
+                                info->Size += (USHORT)dataSize;
+                            }
+                        }
+                        break;
 
-                case IrpMajorCode::DEVICE_CONTROL:
-                case IrpMajorCode::INTERNAL_DEVICE_CONTROL:
-                    info.DeviceIoControl.IoControlCode = stack->Parameters.DeviceIoControl.IoControlCode;
-                    info.DeviceIoControl.InputBufferLength = stack->Parameters.DeviceIoControl.InputBufferLength;
-                    info.DeviceIoControl.OutputBufferLength = stack->Parameters.DeviceIoControl.OutputBufferLength;
-                    break;
+                    case IrpMajorCode::DEVICE_CONTROL:
+                    case IrpMajorCode::INTERNAL_DEVICE_CONTROL:
+                        info->DeviceIoControl.IoControlCode = stack->Parameters.DeviceIoControl.IoControlCode;
+                        info->DeviceIoControl.InputBufferLength = stack->Parameters.DeviceIoControl.InputBufferLength;
+                        info->DeviceIoControl.OutputBufferLength = stack->Parameters.DeviceIoControl.OutputBufferLength;
+                        if (info->DeviceIoControl.InputBufferLength > 0) {
+                        }
+                        break;
+                    }
+
+                    globals.DataBuffer->Write(info, info->Size);
+                    if (globals.NotifyEvent)
+                        KeSetEvent(globals.NotifyEvent, 2, FALSE);
+
+                    ExFreePool(info);
                 }
-
-                globals.DataBuffer->Write(&info, info.Size);
-                if (globals.NotifyEvent)
-                    KeSetEvent(globals.NotifyEvent, 2, FALSE);
+                //
+                // replace completion routine and save old one 
+                //             
+                //Irp->Tail.Overlay.DriverContext[3] = InterlockedExchangePointer((PVOID*)&stack->CompletionRoutine, OnIrpCompleted);
             }
 
             return globals.Drivers[i].MajorFunction[stack->MajorFunction](DeviceObject, Irp);
@@ -295,10 +318,68 @@ NTSTATUS DriverMonGenericDispatch(PDEVICE_OBJECT DeviceObject, PIRP Irp) {
     return STATUS_UNSUCCESSFUL;
 }
 
+NTSTATUS OnIrpCompleted(PDEVICE_OBJECT DeviceObject, PIRP Irp, PVOID context) {
+    auto originalCompletion = static_cast<PIO_COMPLETION_ROUTINE>(Irp->Tail.Overlay.DriverContext[3]);
+    auto status = STATUS_SUCCESS;
+
+    // capture IRP parameters
+
+    IrpCompletedInfo info;
+    KeQuerySystemTime((PLARGE_INTEGER)&info.Time);
+    info.DeviceObject = DeviceObject;
+    info.DriverObject = DeviceObject->DriverObject;
+    info.Irp = Irp;
+    info.Information = Irp->IoStatus.Information;
+    info.Status = Irp->IoStatus.Status;
+    info.Type = DataItemType::IrpCompleted;
+    info.Size = sizeof(info);
+
+    if (originalCompletion) {
+        status = originalCompletion(DeviceObject, Irp, context);
+    }
+    if (status != STATUS_MORE_PROCESSING_REQUIRED) {
+        // report completion
+        KdPrint((DRIVER_PREFIX "IRP 0x%p completed with status 0x%08X\n", Irp, status));
+
+        if (globals.IsMonitoring && globals.NotifyEvent) {
+            globals.DataBuffer->Write(&info, info.Size);
+            if (globals.NotifyEvent)
+                KeSetEvent(globals.NotifyEvent, 2, FALSE);
+
+        }
+    }
+    return status;
+}
+
 void RemoveAllDrivers() {
     for (int i = 0; i < MaxMonitoredDrivers; ++i) {
         if (globals.Drivers[i].DriverObject)
             RemoveDriver(i);
     }
     NT_ASSERT(globals.Count == 0);
+}
+
+NTSTATUS GetDataFromIrp(PDEVICE_OBJECT DeviceObject, PIRP Irp, PIO_STACK_LOCATION stack, IrpMajorCode code, PVOID buffer, ULONG size) {
+    UNREFERENCED_PARAMETER(stack);
+
+    switch (code) {
+    case IrpMajorCode::WRITE:
+    case IrpMajorCode::READ:
+        if (Irp->MdlAddress) {
+            auto p = MmGetSystemAddressForMdlSafe(Irp->MdlAddress, NormalPagePriority);
+            if (p) {
+                ::memcpy(buffer, p, size);
+                return STATUS_SUCCESS;
+            }
+            return STATUS_INSUFFICIENT_RESOURCES;
+        }
+        if (DeviceObject->Flags & DO_BUFFERED_IO) {
+            ::memcpy(buffer, Irp->AssociatedIrp.SystemBuffer, size);
+            return STATUS_SUCCESS;
+        }
+        ::memcpy(buffer, Irp->UserBuffer, size);
+        return STATUS_SUCCESS;
+    }
+
+    return STATUS_UNSUCCESSFUL;
 }

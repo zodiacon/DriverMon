@@ -1,0 +1,29 @@
+﻿<UserControl x:Class="HexEditControl.HexEdit"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:HexEditControl"
+             mc:Ignorable="d" Focusable="True"
+             d:DesignHeight="300" d:DesignWidth="300" FontFamily="Consolas" x:Name="This" SizeChanged="OnSizeChanged">
+    <UserControl.FocusVisualStyle>
+        <Style>
+            <Setter Property="Control.Foreground" Value="{x:Null}" />
+        </Style>
+    </UserControl.FocusVisualStyle>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <ScrollBar x:Name="_verticalScroll" ValueChanged="OnScrollChanged" Grid.Column="1" SmallChange="10" LargeChange="100"/>
+        <ScrollBar Visibility="Collapsed" x:Name="_horizontalScroll" ValueChanged="OnScrollChanged" Grid.Row="1" Orientation="Horizontal" />
+        <Canvas x:Name="_canvas" MouseWheel="OnMouseWheel" Background="Transparent" MouseLeftButtonDown="OnLeftMouseDown" >
+            <local:Caret Height="{Binding FontSize, ElementName=This}" Visibility="Collapsed" Foreground="Green" Width="8" x:Name="_caret"/>
+        </Canvas>
+    </Grid>
+</UserControl>

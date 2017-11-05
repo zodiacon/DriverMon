@@ -118,6 +118,7 @@ namespace DriverMon {
         public byte MinorFunction;
         public byte Irql;
         byte _padding;
+        public int DataSize;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -127,6 +128,7 @@ namespace DriverMon {
         public long Offset;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     struct IrpArrivedInfoDeviceIoControl {
         public IrpArrivedInfoBase Base;
         public uint IoControlCode;
@@ -134,12 +136,13 @@ namespace DriverMon {
         public uint OutputBufferLength;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     struct IrpCompletedInfo {
         public CommonInfoHeader Header;
         public IntPtr DriverObject;
         public IntPtr DeviceObject;
         public IntPtr Irp;
-        public long Status;
+        public int Status;
         public IntPtr Information;
     }
 
@@ -262,7 +265,7 @@ namespace DriverMon {
 
                     var data = GetData(out var size);
                     if (data != null) {
-                        dispatcher.InvokeAsync(() => App.MainViewModel.Update(data, size), DispatcherPriority.Background);
+                        dispatcher.Invoke(() => App.MainViewModel.Update(data, size), DispatcherPriority.Background);
                     }
                 }
             });
@@ -280,7 +283,7 @@ namespace DriverMon {
             return DeviceIoControl(_handle, IoctlRemoveAll, null, 0, null, 0, out var returned);
         }
 
-        byte[] _buffer = new byte[1 << 16];
+        byte[] _buffer = new byte[1 << 20];
 
         public unsafe byte[] GetData(out int size) {
             if (DeviceIoControl(_handle, IoctlGetData, null, 0, _buffer, _buffer.Length, out size))

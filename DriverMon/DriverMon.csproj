@@ -61,6 +61,9 @@
   <PropertyGroup>
     <SignAssembly>false</SignAssembly>
   </PropertyGroup>
+  <PropertyGroup>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="ControlzEx, Version=3.0.2.4, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\ControlzEx.3.0.2.4\lib\net45\ControlzEx.dll</HintPath>
@@ -114,10 +117,16 @@
     <Compile Include="Helpers.cs" />
     <Compile Include="Models\Settings.cs" />
     <Compile Include="ViewModels\AccentViewModel.cs" />
+    <Compile Include="ViewModels\DataBufferViewModel.cs" />
     <Compile Include="ViewModels\DriversSettingsViewModel.cs" />
     <Compile Include="ViewModels\DriverViewModel.cs" />
     <Compile Include="ViewModels\IrpArrivedViewModel.cs" />
+    <Compile Include="ViewModels\IrpCompletedViewModel.cs" />
+    <Compile Include="ViewModels\IrpViewModelBase.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
+    <Compile Include="Views\DataBufferDialog.xaml.cs">
+      <DependentUpon>DataBufferDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\DriversSettingsDialog.xaml.cs">
       <DependentUpon>DriversSettingsDialog.xaml</DependentUpon>
     </Compile>
@@ -145,6 +154,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Views\DataBufferDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\DriversSettingsDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -168,6 +181,8 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Resource Include="Icons\view.ico" />
+    <Resource Include="Icons\irp_sent.ico" />
     <Resource Include="Icons\clearall.ico" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -220,5 +235,18 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BufferManager\BufferManager.csproj">
+      <Project>{a1e0e6c7-c733-4228-8ff2-27dd2a98b902}</Project>
+      <Name>BufferManager</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\HexEditControl\HexEditControl.csproj">
+      <Project>{708775e8-a45a-4bf8-8082-1a5a0530ef88}</Project>
+      <Name>HexEditControl</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>"C:\Program Files (x86)\Windows Kits\10\bin\x86\signtool.exe" sign /i digicert $(TargetPath)</PostBuildEvent>
+  </PropertyGroup>
 </Project>

@@ -3,17 +3,16 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using static DriverMon.Win32;
 
 namespace DriverMon.ViewModels {
-    class IrpArrivedViewModel {
+    class IrpArrivedViewModel : IrpViewModelBase {
         static StringBuilder _sb = new StringBuilder(260);
 
-        unsafe public IrpArrivedViewModel(int index, string driverName, IrpArrivedInfoBase* info) {
-            Index = index;
-            Time = new DateTime(info->Header.Time);
+        unsafe public IrpArrivedViewModel(int index, string driverName, IrpArrivedInfoBase* info) : base(index, driverName, &info->Header) {
             ProcessId = info->ProcessId;
             ThreadId = info->ThreadId;
             MajorCode = info->MajorFunction;
@@ -37,8 +36,7 @@ namespace DriverMon.ViewModels {
 
             DriverObject = info->DriverObject.ToInt64();
             DeviceObject = info->DeviceObject.ToInt64();
-            DriverName = driverName;
-            Irp = info->Irp;
+            Irp = info->Irp.ToInt64();
             if (ProcessId == 4) {
                 ProcessName = "System";
             }
@@ -53,6 +51,13 @@ namespace DriverMon.ViewModels {
             }
 
             Details = GetDetails(info);
+            DataSize = info->DataSize;
+            if (DataSize > 0) {
+                Data = new byte[DataSize];
+                fixed (byte* p = Data) {
+                    Buffer.MemoryCopy((byte*)info + Marshal.SizeOf<IrpArrivedInfoDeviceIoControl>(), p, DataSize, DataSize);
+                }
+            }
         }
 
         private unsafe string GetDetails(IrpArrivedInfoBase* info) {
@@ -73,16 +78,16 @@ namespace DriverMon.ViewModels {
         }
 
         public string ProcessName { get; }
-        public int Index { get; }
-        public DateTime Time { get; }
         public int ProcessId { get; }
         public int ThreadId { get; }
         public IrpMajorCode MajorCode { get; }
         public string MinorCode { get; }
         public long DriverObject { get; }
         public long DeviceObject { get; }
-        public IntPtr Irp { get; }
-        public string DriverName { get; }
+        public long Irp { get; }
         public string Details { get; }
+        public int DataSize { get; }
+        public byte[] Data { get; }
+        public bool HasData => DataSize > 0;
     }
 }
