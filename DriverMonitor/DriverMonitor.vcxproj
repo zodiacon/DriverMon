@@ -261,6 +261,7 @@
     <ClInclude Include="DriverMon.h" />
     <ClInclude Include="FastMutex.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="SimpleTable.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

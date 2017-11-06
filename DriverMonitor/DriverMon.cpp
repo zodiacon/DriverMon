@@ -16,6 +16,7 @@ NTSTATUS RemoveDriver(int index);
 NTSTATUS DriverMonGenericDispatch(PDEVICE_OBJECT, PIRP);
 NTSTATUS OnIrpCompleted(PDEVICE_OBJECT DeviceObject, PIRP Irp, PVOID context);
 NTSTATUS GetDataFromIrp(PDEVICE_OBJECT Deviceobject, PIRP Irp, PIO_STACK_LOCATION stack, IrpMajorCode code, PVOID buffer, ULONG size);
+void GenericDriverUnload(PDRIVER_OBJECT DriverObject);
 
 void RemoveAllDrivers();
 
@@ -34,6 +35,12 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING /* RegistryPat
     globals.DataBuffer = new (NonPagedPool) CyclicBuffer;
     if (globals.DataBuffer == nullptr)
         return STATUS_INSUFFICIENT_RESOURCES;
+
+    globals.IrpCompletionTable = new (NonPagedPool) SimpleTable<PVOID, PVOID, 256>;
+    if (globals.IrpCompletionTable == nullptr) {
+        delete globals.DataBuffer;
+        return STATUS_INSUFFICIENT_RESOURCES;
+    }
 
     auto status = globals.DataBuffer->Init(1 << 20, NonPagedPool, DRIVER_TAG);
     if (!NT_SUCCESS(status)) {
@@ -80,6 +87,7 @@ void DriverMonUnload(PDRIVER_OBJECT DriverObject) {
         ObDereferenceObject(globals.NotifyEvent);
 
     delete globals.DataBuffer;
+    delete globals.IrpCompletionTable;
 
     UNICODE_STRING symLink;
     RtlInitUnicodeString(&symLink, DeviceSymLink);
@@ -216,6 +224,7 @@ NTSTATUS AddDriver(PCWSTR driverName, PVOID* driverObject) {
             InterlockedExchangePointer((PVOID*)&driver->MajorFunction[i], DriverMonGenericDispatch));
     }
 
+    globals.Drivers[index].DriverUnload = static_cast<PDRIVER_UNLOAD>(InterlockedExchangePointer((PVOID*)&driver->DriverUnload, GenericDriverUnload));
     globals.Drivers[index].DriverObject = driver;
     ++globals.Count;
     *driverObject = driver;
@@ -238,6 +247,8 @@ NTSTATUS RemoveDriver(int i) {
     for (int j = 0; j <= IRP_MJ_MAXIMUM_FUNCTION; j++) {
         InterlockedExchangePointer((PVOID*)&driver.DriverObject->MajorFunction[j], driver.MajorFunction[j]);
     }
+    InterlockedExchangePointer((PVOID*)&driver.DriverUnload, driver.DriverUnload);
+
     globals.Count--;
     ObDereferenceObject(driver.DriverObject);
     driver.DriverObject = nullptr;
@@ -313,7 +324,12 @@ NTSTATUS DriverMonGenericDispatch(PDEVICE_OBJECT DeviceObject, PIRP Irp) {
                 //
                 // replace completion routine and save old one 
                 //             
-                //Irp->Tail.Overlay.DriverContext[3] = InterlockedExchangePointer((PVOID*)&stack->CompletionRoutine, OnIrpCompleted);
+                //auto oldCompletion = InterlockedExchangePointer((PVOID*)&stack->CompletionRoutine, OnIrpCompleted);
+                //auto index = globals.IrpCompletionTable->Insert(Irp, oldCompletion);
+                //if (index < 0) {
+                //    // no more space in table, revert completion
+                //    InterlockedExchangePointer((PVOID*)&stack->CompletionRoutine, oldCompletion);
+                //}
             }
 
             return globals.Drivers[i].MajorFunction[stack->MajorFunction](DeviceObject, Irp);
@@ -327,7 +343,9 @@ NTSTATUS DriverMonGenericDispatch(PDEVICE_OBJECT DeviceObject, PIRP Irp) {
 }
 
 NTSTATUS OnIrpCompleted(PDEVICE_OBJECT DeviceObject, PIRP Irp, PVOID context) {
-    auto originalCompletion = static_cast<PIO_COMPLETION_ROUTINE>(Irp->Tail.Overlay.DriverContext[3]);
+    int index;
+    auto originalCompletion = static_cast<PIO_COMPLETION_ROUTINE>(globals.IrpCompletionTable->Find(Irp, &index));
+
     auto status = STATUS_SUCCESS;
 
     // capture IRP parameters
@@ -348,6 +366,9 @@ NTSTATUS OnIrpCompleted(PDEVICE_OBJECT DeviceObject, PIRP Irp, PVOID context) {
     if (status != STATUS_MORE_PROCESSING_REQUIRED) {
         // report completion
         KdPrint((DRIVER_PREFIX "IRP 0x%p completed with status 0x%08X\n", Irp, status));
+
+        if (index >= 0)
+            globals.IrpCompletionTable->RemoveAt(index);
 
         if (globals.IsMonitoring && globals.NotifyEvent) {
             globals.DataBuffer->Write(&info, info.Size);
@@ -408,4 +429,15 @@ NTSTATUS GetDataFromIrp(PDEVICE_OBJECT DeviceObject, PIRP Irp, PIO_STACK_LOCATIO
     __except(EXCEPTION_EXECUTE_HANDLER) {
     }
     return STATUS_UNSUCCESSFUL;
+}
+
+void GenericDriverUnload(PDRIVER_OBJECT DriverObject) {
+    for (int i = 0; i < MaxMonitoredDrivers; ++i) {
+        if (globals.Drivers[i].DriverObject == DriverObject) {
+            if (globals.Drivers[i].DriverUnload)
+                globals.Drivers[i].DriverUnload(DriverObject);
+            RemoveDriver(i);
+        }
+    }
+    NT_ASSERT(false);
 }

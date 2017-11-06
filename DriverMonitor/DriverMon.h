@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Common.h"
+#include "FastMutex.h"
+#include "SimpleTable.h"
 
 // driver only declarations
 
@@ -34,6 +36,7 @@ struct MonitoredDriver {
     WCHAR DriverName[64];
     PDRIVER_DISPATCH MajorFunction[IRP_MJ_MAXIMUM_FUNCTION + 1];
     PDRIVER_OBJECT DriverObject;
+    PDRIVER_UNLOAD DriverUnload;
     PDEVICE_OBJECT DeviceObjects[4];
 };
 
@@ -41,6 +44,7 @@ const int MaxMonitoredDrivers = 16;
 
 struct DriverMonGlobals {
     MonitoredDriver Drivers[MaxMonitoredDrivers];
+    SimpleTable<PVOID, PVOID, 256>* IrpCompletionTable;
     CyclicBuffer* DataBuffer;
     PKEVENT NotifyEvent;
     short Count;

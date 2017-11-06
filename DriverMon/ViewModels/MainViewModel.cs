@@ -64,6 +64,7 @@ namespace DriverMon.ViewModels {
             ChangeAccentCommand.Execute(Accents.First(acc => acc.Name == _settings.AccentColor));
 
             await StartDriver();
+            _driver.RemoveAllDrivers();
         });
 
         private async Task InstallAndLoadDriverAsync() {
