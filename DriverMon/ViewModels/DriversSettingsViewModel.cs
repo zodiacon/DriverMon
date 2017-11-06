@@ -22,20 +22,21 @@ namespace DriverMon.ViewModels {
         public List<DriverViewModel> Drivers {
             get {
                 if (_drivers == null) {
-                    var drivers = from svc in ServiceController.GetDevices()
-                                  where svc.Status == ServiceControllerStatus.Running
-                                  select svc;
-
+                    var drivers = Helpers.GetDriversFromObjectManager();
                     _drivers = new List<DriverViewModel>(256);
-                    foreach (var svc in drivers) {
-                        if (_existingDrivers != null && _existingDrivers.TryGetValue(svc.ServiceName, out var existingDriver))
-                            _drivers.Add(existingDriver);
-                        else
-                            _drivers.Add(new DriverViewModel(svc.ServiceName) {
-                                DisplayName = svc.DisplayName,
-                                IsMonitored = false
-                            });
+                    foreach (var name in drivers) {
+                        var displayName = string.Empty;
+                        try {
+                            var svc = new ServiceController(name);
+                            displayName = svc.DisplayName;
+                        }
+                        catch (Exception) {
+                        }
+                        _drivers.Add(new DriverViewModel(name) {
+                            DisplayName = displayName
+                        });
                     }
+                    _drivers = _drivers.OrderBy(driver => driver.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
                 }
                 return _drivers;
             }

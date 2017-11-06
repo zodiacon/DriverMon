@@ -116,6 +116,7 @@
     <Compile Include="DriverInterface.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="Models\Settings.cs" />
+    <Compile Include="NtDll.cs" />
     <Compile Include="ViewModels\AccentViewModel.cs" />
     <Compile Include="ViewModels\DataBufferViewModel.cs" />
     <Compile Include="ViewModels\DriversSettingsViewModel.cs" />
