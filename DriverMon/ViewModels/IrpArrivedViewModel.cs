@@ -31,6 +31,9 @@ namespace DriverMon.ViewModels {
 
             }
 
+            IrpType = IrpType.Sent;
+            Icon = "/icons/irp-sent.ico";
+
             DriverObject = info->DriverObject.ToInt64();
             DeviceObject = info->DeviceObject.ToInt64();
             Irp = info->Irp.ToInt64();

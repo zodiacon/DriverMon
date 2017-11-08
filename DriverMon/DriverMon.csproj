@@ -189,7 +189,7 @@
     <Resource Include="Icons\irp-success.ico" />
     <Resource Include="Icons\irp-error.ico" />
     <Resource Include="Icons\view.ico" />
-    <Resource Include="Icons\irp_sent.ico" />
+    <Resource Include="Icons\irp-sent.ico" />
     <Resource Include="Icons\clearall.ico" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

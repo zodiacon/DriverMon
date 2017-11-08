@@ -54,6 +54,14 @@
                 <sf:AutoScroller AutoScrolling="Vertical" IsEnabled="True" />
             </sf:SfDataGrid.AutoScroller>
             <sf:SfDataGrid.Columns>
+                <sf:GridTemplateColumn Width="28" AllowResizing="False" AllowSorting="True" MappingName="IrpType" HeaderText="" >
+                    <sf:GridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Image Source="{Binding Icon}" Width="16" Height="16" VerticalAlignment="Center" />
+                        </DataTemplate>
+                    </sf:GridTemplateColumn.CellTemplate>
+                </sf:GridTemplateColumn>
+
                 <sf:GridTextColumn HeaderText="#" MappingName="Index" MinimumWidth="30" Width="60" />
                 <sf:GridDateTimeColumn HeaderText="Time" MappingName="Time" Pattern="LongTime" MinimumWidth="60" Width="120" TextAlignment="Center">
                     <sf:GridDateTimeColumn.DateTimeFormat>
@@ -61,10 +69,10 @@
                     </sf:GridDateTimeColumn.DateTimeFormat>
                 </sf:GridDateTimeColumn>
                 <sf:GridTextColumn HeaderText="Driver" MappingName="DriverName" MinimumWidth="60" Width="100" />
-                <sf:GridTextColumn HeaderText="PID" MappingName="ProcessId" MinimumWidth="60" Width="80" TextAlignment="Center" />
+                <sf:GridTextColumn HeaderText="PID" MappingName="ProcessId" MinimumWidth="40" Width="60" TextAlignment="Center" />
                 <sf:GridTextColumn HeaderText="Process Name" MappingName="ProcessName" MinimumWidth="80" Width="110" />
-                <sf:GridTextColumn HeaderText="TID" MappingName="ThreadId" MinimumWidth="60" Width="80" TextAlignment="Center" />
-                <sf:GridTextColumn HeaderText="Function" MappingName="Function" MinimumWidth="50" Width="120" />
+                <sf:GridTextColumn HeaderText="TID" MappingName="ThreadId" MinimumWidth="40" Width="60" TextAlignment="Center" />
+                <sf:GridTextColumn HeaderText="Function" MappingName="Function" MinimumWidth="70" Width="130" />
                 <!--<sf:GridTextColumn HeaderText="Minor Function" MappingName="MinorCode" MinimumWidth="50" Width="120" />-->
                 <sf:GridTemplateColumn HeaderText="Device Object" MappingName="DeviceObject" MinimumWidth="50" Width="130">
                     <sf:GridTemplateColumn.CellTemplate>
@@ -80,7 +88,7 @@
                         </DataTemplate>
                     </sf:GridTemplateColumn.CellTemplate>
                 </sf:GridTemplateColumn>
-                <sf:GridTemplateColumn HeaderText="Data" MappingName="DataSize" MinimumWidth="50" Width="80">
+                <sf:GridTemplateColumn HeaderText="Data" MappingName="DataSize" MinimumWidth="40" Width="60">
                     <sf:GridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Button Command="{Binding DataContext.ViewDataCommand, ElementName=This}" CommandParameter="{Binding}"
