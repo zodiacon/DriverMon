@@ -27,6 +27,8 @@ namespace DriverMon.ViewModels {
         readonly IUIServices UI;
         readonly ObservableCollection<IrpViewModelBase> _requests = new ObservableCollection<IrpViewModelBase>();
         readonly Dictionary<IntPtr, DriverViewModel> _driversd = new Dictionary<IntPtr, DriverViewModel>(8);
+        readonly Dictionary<IntPtr, IrpArrivedViewModel> _irps = new Dictionary<IntPtr, IrpArrivedViewModel>(64);
+
         List<DriverViewModel> _drivers;
         Settings _settings;
 
@@ -114,12 +116,17 @@ namespace DriverMon.ViewModels {
                     switch (info->Type) {
                         case DataItemType.IrpArrived:
                             var arrivedInfo = (IrpArrivedInfoBase*)info;
-                            _requests.Add(new IrpArrivedViewModel(_requests.Count + 1, _driversd[arrivedInfo->DriverObject].Name, arrivedInfo));
+                            var request = new IrpArrivedViewModel(_requests.Count + 1, _driversd[arrivedInfo->DriverObject].Name, arrivedInfo);
+                            _requests.Add(request);
+                            _irps[arrivedInfo->Irp] = request;
                             break;
 
                         case DataItemType.IrpCompleted:
                             var completedInfo = (IrpCompletedInfo*)info;
-                            _requests.Add(new IrpCompletedViewModel(_requests.Count + 1, _driversd[completedInfo->DriverObject].Name, completedInfo));
+                            if (_irps.TryGetValue(completedInfo->Irp, out var requestData)) {
+                                _requests.Add(new IrpCompletedViewModel(_requests.Count + 1, completedInfo, requestData));
+                                _irps.Remove(completedInfo->Irp);
+                            }
                             break;
 
                         default:

@@ -136,11 +136,9 @@ namespace DriverMon {
         public uint OutputBufferLength;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     struct IrpCompletedInfo {
         public CommonInfoHeader Header;
-        public IntPtr DriverObject;
-        public IntPtr DeviceObject;
         public IntPtr Irp;
         public int Status;
         public IntPtr Information;

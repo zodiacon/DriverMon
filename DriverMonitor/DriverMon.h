@@ -1,15 +1,17 @@
 #pragma once
 
+#define DRIVER_PREFIX "DriverMon: "
+const ULONG DRIVER_TAG = 'NMVD';
+
 #include "Common.h"
-#include "FastMutex.h"
 #include "SimpleTable.h"
+#include "CyclicBuffer.h"
 
 // driver only declarations
 
 const WCHAR DeviceSymLink[] = L"\\??\\DriverMon";
 const WCHAR DeviceName[] = L"\\Device\\DriverMon";
 
-class CyclicBuffer;
 
 extern "C"
 NTSYSAPI
@@ -29,9 +31,6 @@ extern "C" POBJECT_TYPE* IoDriverObjectType;
 void* __cdecl operator new(size_t size, POOL_TYPE type, ULONG tag = 0);
 void __cdecl operator delete(void* p, size_t);
 
-#define DRIVER_PREFIX "DriverMon: "
-const ULONG DRIVER_TAG = 'NMVD';
-
 struct MonitoredDriver {
     WCHAR DriverName[64];
     PDRIVER_DISPATCH MajorFunction[IRP_MJ_MAXIMUM_FUNCTION + 1];
@@ -45,7 +44,7 @@ const int MaxMonitoredDrivers = 16;
 struct DriverMonGlobals {
     MonitoredDriver Drivers[MaxMonitoredDrivers];
     SimpleTable<PVOID, PVOID, 256>* IrpCompletionTable;
-    CyclicBuffer* DataBuffer;
+    CyclicBuffer<SpinLock>* DataBuffer;
     PKEVENT NotifyEvent;
     short Count;
     bool IsMonitoring;

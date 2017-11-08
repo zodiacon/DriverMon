@@ -36,7 +36,7 @@ namespace DriverMon.ViewModels {
                             DisplayName = displayName
                         });
                     }
-                    _drivers = _drivers.OrderBy(driver => driver.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
+                    _drivers.Sort((d1, d2) => d1.Name.CompareTo(d2.Name));
                 }
                 return _drivers;
             }

@@ -148,8 +148,6 @@ struct IrpArrivedInfo : CommonInfoHeader {
 };
 
 struct IrpCompletedInfo : CommonInfoHeader {
-    PVOID DriverObject;
-    PVOID DeviceObject;
     PVOID Irp;
     long Status;
     ULONG_PTR Information;

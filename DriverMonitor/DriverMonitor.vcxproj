@@ -240,7 +240,6 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CyclicBuffer.cpp" />
     <ClCompile Include="DriverMon.cpp" />
     <ClCompile Include="FastMutex.cpp" />
     <ClCompile Include="Memory.cpp" />
@@ -262,6 +261,7 @@
     <ClInclude Include="FastMutex.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="SimpleTable.h" />
+    <ClInclude Include="SpinLock.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

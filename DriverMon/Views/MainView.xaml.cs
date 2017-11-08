@@ -33,7 +33,7 @@ namespace DriverMon.Views {
             var vm = e.NewValue as MainViewModel;
             if (vm != null) {
                 vm.Requests.CollectionChanged += delegate {
-                    if (vm.AutoScroll)
+                    if (vm.AutoScroll && vm.Requests.Count > 0)
                         _dataGrid.ScrollInView(new Syncfusion.UI.Xaml.ScrollAxis.RowColumnIndex(vm.Requests.Count - 1, 0));
                 };
             }

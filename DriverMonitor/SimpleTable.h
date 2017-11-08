@@ -1,6 +1,7 @@
 #pragma once
 
 #include "FastMutex.h"
+#include "SpinLock.h"
 
 template<typename TKey, typename TValue, int Size>
 struct SimpleTable {
@@ -9,7 +10,7 @@ struct SimpleTable {
     }
 
     int Insert(const TKey& key, const TValue& value) {
-        AutoLock<KernelFastMutex> lock(_lock);
+        AutoLock<SpinLock> lock(_lock);
 
         if (_count == Size)
             return -1;
@@ -27,7 +28,7 @@ struct SimpleTable {
     }
 
     TValue Find(const TKey& key, int* index = nullptr) {
-        AutoLock<KernelFastMutex> lock(_lock);
+        AutoLock<SpinLock> lock(_lock);
 
         for (int i = 0; i < Size; i++) {
             if (_table[i].Key == key) {
@@ -40,7 +41,7 @@ struct SimpleTable {
     }
 
     int Remove(const TKey& key) {
-        AutoLock<KernelFastMutex> lock(_lock);
+        AutoLock<SpinLock> lock(_lock);
         for (int i = 0; i < Size; i++) {
             if (_table[i].Key == TKey()) {
                 _table[i].Key = TKey();
@@ -52,7 +53,7 @@ struct SimpleTable {
     }
 
     void RemoveAt(int index) {
-        AutoLock<KernelFastMutex> lock(_lock);
+        AutoLock<SpinLock> lock(_lock);
         _table[index].Key = TKey();
         _count--;
     }
@@ -63,7 +64,7 @@ private:
         TValue Value;
     };
 
-    KernelFastMutex _lock;
+    SpinLock _lock;
     Item _table[Size];
     int _count;
 };

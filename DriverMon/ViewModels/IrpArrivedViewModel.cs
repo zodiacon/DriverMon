@@ -29,9 +29,6 @@ namespace DriverMon.ViewModels {
                     MinorCode = ((IrpMinorCodeWmi)info->MinorFunction).ToString();
                     break;
 
-                default:
-                    MinorCode = ((int)info->MinorFunction).ToString();
-                    break;
             }
 
             DriverObject = info->DriverObject.ToInt64();
@@ -58,6 +55,8 @@ namespace DriverMon.ViewModels {
                     Buffer.MemoryCopy((byte*)info + info->Header.Size - DataSize, p, DataSize, DataSize);
                 }
             }
+
+            Function = MajorCode.ToString() + (MinorCode == null ? null : (" / " + MinorCode));
         }
 
         private unsafe string GetDetails(IrpArrivedInfoBase* info) {
@@ -77,6 +76,7 @@ namespace DriverMon.ViewModels {
             }
         }
 
+        public string Function { get; }
         public string ProcessName { get; }
         public int ProcessId { get; }
         public int ThreadId { get; }
