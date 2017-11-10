@@ -43,6 +43,8 @@ namespace DriverMon {
         QUERY_QUOTA = 0x19,
         SET_QUOTA = 0x1a,
         PNP = 0x1b,
+
+        UNKNOWN = 0xff
     }
 
     enum IrpMinorCodePnp : byte {
@@ -142,6 +144,7 @@ namespace DriverMon {
         public IntPtr Irp;
         public int Status;
         public IntPtr Information;
+        public int DataSize;
     }
 
     sealed class DriverInterface : IDisposable {

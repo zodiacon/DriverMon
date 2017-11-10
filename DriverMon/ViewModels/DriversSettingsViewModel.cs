@@ -27,13 +27,15 @@ namespace DriverMon.ViewModels {
                     foreach (var name in drivers) {
                         var displayName = string.Empty;
                         try {
-                            var svc = new ServiceController(name);
-                            displayName = svc.DisplayName;
+                            using (var svc = new ServiceController(name)) {
+                                displayName = svc.DisplayName;
+                            }
                         }
                         catch (Exception) {
                         }
                         _drivers.Add(new DriverViewModel(name) {
-                            DisplayName = displayName
+                            DisplayName = displayName,
+                            IsMonitored = _existingDrivers != null && _existingDrivers.TryGetValue(name, out var vm) ? vm.IsMonitored : false 
                         });
                     }
                     _drivers.Sort((d1, d2) => d1.Name.CompareTo(d2.Name));

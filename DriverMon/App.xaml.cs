@@ -29,15 +29,18 @@ namespace DriverMon {
             win.Show();
             ui.MessageBoxService.SetOwner(win);
 
-            //SfSkinManager.ApplyStylesOnApplication = true;
-            //SfSkinManager.SetVisualStyle(win, VisualStyles.Metro);
+            DispatcherUnhandledException += (s, args) => {
+                MainViewModel.Dispose();
+
+                ui.MessageBoxService.ShowMessage($"Unhandled exception: {args.Exception.Message}. Exiting", App.Title);
+                Shutdown(1);
+            };
         }
 
         protected override void OnExit(ExitEventArgs e) {
-            base.OnExit(e);
-
             MainViewModel.Save();
             MainViewModel.Dispose();
         }
+
     }
 }

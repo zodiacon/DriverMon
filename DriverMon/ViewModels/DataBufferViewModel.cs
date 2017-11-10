@@ -10,8 +10,8 @@ using Zodiacon.WPF;
 
 namespace DriverMon.ViewModels {
     sealed class DataBufferViewModel : DialogViewModelBase {
-        IrpArrivedViewModel _vm;
-        public DataBufferViewModel(Window dialog, IrpArrivedViewModel vm) : base(dialog) {
+        IrpViewModelBase _vm;
+        public DataBufferViewModel(Window dialog, IrpViewModelBase vm) : base(dialog) {
             _vm = vm;
         }
 

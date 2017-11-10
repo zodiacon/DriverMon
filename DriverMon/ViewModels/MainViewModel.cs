@@ -52,7 +52,7 @@ namespace DriverMon.ViewModels {
         }, accent => accent != _currentAccent).ObservesProperty(() => CurrentAccent);
 
         public bool IsAlwaysOnTop {
-            get => Settings.Topmost;
+            get => Application.Current.MainWindow.Topmost;
             set => Application.Current.MainWindow.Topmost = Settings.Topmost = value;
         }
 
@@ -123,8 +123,9 @@ namespace DriverMon.ViewModels {
 
                         case DataItemType.IrpCompleted:
                             var completedInfo = (IrpCompletedInfo*)info;
-                            if (_irps.TryGetValue(completedInfo->Irp, out var requestData)) {
-                                _requests.Add(new IrpCompletedViewModel(_requests.Count + 1, completedInfo, requestData));
+                            bool exist = _irps.TryGetValue(completedInfo->Irp, out var requestData);
+                            _requests.Add(new IrpCompletedViewModel(_requests.Count + 1, completedInfo, requestData));
+                            if (exist) {
                                 _irps.Remove(completedInfo->Irp);
                             }
                             break;
@@ -197,8 +198,8 @@ namespace DriverMon.ViewModels {
                     else {
                         var text = value.ToLowerInvariant();
                         View.Filter = obj => {
-                            var request = (IrpArrivedViewModel)obj;
-                            return request.DriverName.ToLowerInvariant().Contains(text) || request.MajorCode.ToString().ToLowerInvariant().Contains(text)
+                            var request = (IrpViewModelBase)obj;
+                            return request.DriverName.ToLowerInvariant().Contains(text) || request.Function.ToString().ToLowerInvariant().Contains(text)
                                 || request.ProcessName?.ToLowerInvariant().Contains(text) == true;
                         };
                     }
@@ -212,7 +213,7 @@ namespace DriverMon.ViewModels {
             Requests.Clear();
         });
 
-        public ICommand ViewDataCommand => new DelegateCommand<IrpArrivedViewModel>(request => {
+        public ICommand ViewDataCommand => new DelegateCommand<IrpViewModelBase>(request => {
             Debug.Assert(request.DataSize > 0);
             Debug.Assert(request.Data != null);
 

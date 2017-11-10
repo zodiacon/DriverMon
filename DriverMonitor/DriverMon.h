@@ -40,10 +40,11 @@ struct MonitoredDriver {
 };
 
 const int MaxMonitoredDrivers = 16;
+const int MaxDataSize = 1 << 13;
 
 struct DriverMonGlobals {
     MonitoredDriver Drivers[MaxMonitoredDrivers];
-    SimpleTable<PVOID, PVOID, 256>* IrpCompletionTable;
+    SimpleTable<PVOID, PVOID, 128>* IrpCompletionTable;
     CyclicBuffer<SpinLock>* DataBuffer;
     PKEVENT NotifyEvent;
     short Count;

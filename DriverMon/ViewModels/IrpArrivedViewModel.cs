@@ -79,18 +79,11 @@ namespace DriverMon.ViewModels {
             }
         }
 
-        public string Function { get; }
-        public string ProcessName { get; }
         public int ProcessId { get; }
         public int ThreadId { get; }
-        public IrpMajorCode MajorCode { get; }
         public string MinorCode { get; }
         public long DriverObject { get; }
         public long DeviceObject { get; }
-        public long Irp { get; }
         public string Details { get; }
-        public int DataSize { get; }
-        public byte[] Data { get; }
-        public bool HasData => DataSize > 0;
     }
 }

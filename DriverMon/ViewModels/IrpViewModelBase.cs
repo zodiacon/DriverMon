@@ -19,11 +19,17 @@ namespace DriverMon.ViewModels {
             DriverName = driverName;
         }
 
+        public long Irp { get; protected set; }
         public IrpType IrpType { get; protected set; }
         public string Icon { get; protected set; }
-
+        public IrpMajorCode MajorCode { get; protected set; }
         public int Index { get; }
         public DateTime Time { get; }
         public string DriverName { get; }
+        public int DataSize { get; protected set; }
+        public byte[] Data { get; protected set; }
+        public bool HasData => DataSize > 0;
+        public string ProcessName { get; protected set; }
+        public string Function { get; protected set; }
     }
 }

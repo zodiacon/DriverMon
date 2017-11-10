@@ -151,6 +151,7 @@ struct IrpCompletedInfo : CommonInfoHeader {
     PVOID Irp;
     long Status;
     ULONG_PTR Information;
+	ULONG DataSize;
 };
 
 #pragma pack(pop)

@@ -9,7 +9,7 @@ namespace DriverMon.ViewModels {
         const uint StatusCancelled = 0xC0000120;
 
         IrpArrivedViewModel _arrived;
-        unsafe public IrpCompletedViewModel(int index, IrpCompletedInfo* info, IrpArrivedViewModel arrived) : base(index, arrived.DriverName, &info->Header) {
+        unsafe public IrpCompletedViewModel(int index, IrpCompletedInfo* info, IrpArrivedViewModel arrived) : base(index, arrived?.DriverName, &info->Header) {
             _arrived = arrived;
             Status = info->Status;
             Information = info->Information.ToInt64();
@@ -27,11 +27,22 @@ namespace DriverMon.ViewModels {
                 IrpType = IrpType.CompleteError;
                 Icon = "/icons/irp-error.ico";
             }
+
+            Irp = _arrived != null ? _arrived.Irp : 0;
+            MajorCode = _arrived != null ? _arrived.MajorCode : IrpMajorCode.UNKNOWN;
+            DataSize = info->DataSize;
+
+            if (DataSize > 0) {
+                Data = new byte[DataSize];
+                fixed (byte* p = Data) {
+                    Buffer.MemoryCopy((byte*)info + info->Header.Size - DataSize, p, DataSize, DataSize);
+                }
+            }
+            Function = _arrived?.Function;
         }
 
-        public string Function => _arrived.Function;
-        public long Irp => _arrived.Irp;
-        public long DeviceObject => _arrived.DeviceObject;
+        
+        public long DeviceObject => _arrived != null ? _arrived.DeviceObject : 0;
         public int Status { get; }
         public long Information { get; }
         public string Details { get; }
