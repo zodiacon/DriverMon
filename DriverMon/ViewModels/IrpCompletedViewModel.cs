@@ -15,7 +15,11 @@ namespace DriverMon.ViewModels {
             Information = info->Information.ToInt64();
             Details = $"Status: 0x{Status:X}; Information=0x{Information:X}";
 
-            if (Status >= 0) {
+            if (Status == 0x103) {  // STATUS_PENDING
+                IrpType = IrpType.Pending;
+                Icon = "/icons/clock.ico";
+            }
+            else if (Status >= 0) {
                 IrpType = IrpType.CompleteSuccess;
                 Icon = "/icons/irp-success.ico";
             }

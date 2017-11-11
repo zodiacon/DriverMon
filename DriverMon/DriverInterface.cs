@@ -105,14 +105,14 @@ namespace DriverMon {
         public short Size;
         public DataItemType Type;
         public long Time;
+        public int ProcessId;
+        public int ThreadId;
     };
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     struct IrpArrivedInfoBase {
         public CommonInfoHeader Header;
 
-        public int ProcessId;
-        public int ThreadId;
         public IntPtr DeviceObject;
         public IntPtr DriverObject;
         public IntPtr Irp;

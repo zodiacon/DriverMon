@@ -13,8 +13,6 @@ namespace DriverMon.ViewModels {
         static StringBuilder _sb = new StringBuilder(260);
 
         unsafe public IrpArrivedViewModel(int index, string driverName, IrpArrivedInfoBase* info) : base(index, driverName, &info->Header) {
-            ProcessId = info->ProcessId;
-            ThreadId = info->ThreadId;
             MajorCode = info->MajorFunction;
             switch (MajorCode) {
                 case IrpMajorCode.PNP:
@@ -79,8 +77,6 @@ namespace DriverMon.ViewModels {
             }
         }
 
-        public int ProcessId { get; }
-        public int ThreadId { get; }
         public string MinorCode { get; }
         public long DriverObject { get; }
         public long DeviceObject { get; }

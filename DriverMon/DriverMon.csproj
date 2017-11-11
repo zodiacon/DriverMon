@@ -185,6 +185,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Resource Include="Icons\clock.ico" />
     <Resource Include="Icons\irp-cancel.ico" />
     <Resource Include="Icons\irp-success.ico" />
     <Resource Include="Icons\irp-error.ico" />

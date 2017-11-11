@@ -335,32 +335,36 @@ NTSTATUS DriverMonGenericDispatch(PDEVICE_OBJECT DeviceObject, PIRP Irp) {
 			}
 			//
 			// replace completion routine and save old one 
-			//             
+			//          
+			/*
 			auto oldCompletion = InterlockedExchangePointer((PVOID*)&stack->CompletionRoutine, OnIrpCompleted);
 			auto index = globals.IrpCompletionTable->Insert(Irp, oldCompletion);
 			if (index < 0) {
 				// no more space in table, revert completion
 				InterlockedExchangePointer((PVOID*)&stack->CompletionRoutine, oldCompletion);
 			}
+			*/
 		}
 
 		auto userBuffer = Irp->UserBuffer;
 		auto status = globals.Drivers[i].MajorFunction[stack->MajorFunction](DeviceObject, Irp);
-		if (info && status != STATUS_PENDING) {
+		if (info) {
 			// IRP completed synchronously 
 			// build completion message
 
 			int size = sizeof(IrpCompletedInfo);
 			int extraSize = 0;
 
-			switch (info->MajorFunction) {
-				case IrpMajorCode::READ:
-					extraSize = info->Read.Length;
-					break;
-				case IrpMajorCode::DEVICE_CONTROL:
-				case IrpMajorCode::INTERNAL_DEVICE_CONTROL:
-					extraSize = info->DeviceIoControl.OutputBufferLength;
-					break;
+			if (status != STATUS_PENDING && NT_SUCCESS(status)) {
+				switch (info->MajorFunction) {
+					case IrpMajorCode::READ:
+						extraSize = info->Read.Length;
+						break;
+					case IrpMajorCode::DEVICE_CONTROL:
+					case IrpMajorCode::INTERNAL_DEVICE_CONTROL:
+						extraSize = info->DeviceIoControl.OutputBufferLength;
+						break;
+				}
 			}
 			extraSize = min(MaxDataSize, extraSize);
 			size += extraSize;
@@ -368,14 +372,18 @@ NTSTATUS DriverMonGenericDispatch(PDEVICE_OBJECT DeviceObject, PIRP Irp) {
 			if (completeInfo) {
 				KeQuerySystemTime((PLARGE_INTEGER)&completeInfo->Time);
 				completeInfo->Type = DataItemType::IrpCompleted;
-				if (userBuffer && KeGetCurrentIrql() < DISPATCH_LEVEL) {
-					::memcpy((PUCHAR)completeInfo + sizeof(IrpCompletedInfo), userBuffer, extraSize);
-				}
-				else {
-					size -= extraSize;
-					extraSize = 0;
+				if (status != STATUS_PENDING && NT_SUCCESS(status)) {
+					if (userBuffer && KeGetCurrentIrql() < DISPATCH_LEVEL) {
+						::memcpy((PUCHAR)completeInfo + sizeof(IrpCompletedInfo), userBuffer, extraSize);
+					}
+					else {
+						size -= extraSize;
+						extraSize = 0;
+					}
 				}
 				completeInfo->DataSize = extraSize;
+				completeInfo->ProcessId = HandleToULong(PsGetCurrentProcessId());
+				completeInfo->ThreadId = HandleToULong(PsGetCurrentThreadId());
 				completeInfo->Irp = Irp;
 				completeInfo->Status = status;
 				completeInfo->Information = extraSize;

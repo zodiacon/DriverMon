@@ -69,7 +69,7 @@ namespace DriverMon.ViewModels {
         }
 
         public bool Is24Bytes {
-            get => _editor.BytesPerLine == 24;
+            get => _editor?.BytesPerLine == 24;
             set {
                 if (value)
                     _editor.BytesPerLine = 24;
@@ -77,7 +77,7 @@ namespace DriverMon.ViewModels {
         }
 
         public bool Is32Bytes {
-            get => _editor.BytesPerLine == 32;
+            get => _editor?.BytesPerLine == 32;
             set {
                 if (value)
                     _editor.BytesPerLine = 32;
@@ -85,7 +85,7 @@ namespace DriverMon.ViewModels {
         }
 
         public bool Is48Bytes {
-            get => _editor.BytesPerLine == 48;
+            get => _editor?.BytesPerLine == 48;
             set {
                 if (value)
                     _editor.BytesPerLine = 48;
@@ -93,7 +93,7 @@ namespace DriverMon.ViewModels {
         }
 
         public bool Is64Bytes {
-            get => _editor.BytesPerLine == 64;
+            get => _editor?.BytesPerLine == 64;
             set {
                 if (value)
                     _editor.BytesPerLine = 64;

@@ -9,7 +9,8 @@ namespace DriverMon.ViewModels {
         Sent,
         CompleteSuccess,
         CompleteError,
-        Cancelled
+        Cancelled,
+        Pending
     }
 
     abstract class IrpViewModelBase {
@@ -17,8 +18,12 @@ namespace DriverMon.ViewModels {
             Index = index;
             Time = new DateTime(info->Time);
             DriverName = driverName;
+            ProcessId = info->ProcessId;
+            ThreadId = info->ThreadId;
         }
 
+        public int ProcessId { get; }
+        public int ThreadId { get; }
         public long Irp { get; protected set; }
         public IrpType IrpType { get; protected set; }
         public string Icon { get; protected set; }

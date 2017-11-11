@@ -113,11 +113,11 @@ struct CommonInfoHeader {
     USHORT Size;
     DataItemType Type;
     long long Time;
+	ULONG ProcessId;
+	ULONG ThreadId;
 };
 
 struct IrpArrivedInfo : CommonInfoHeader {
-    ULONG ProcessId;
-    ULONG ThreadId;
     PVOID DeviceObject;
     PVOID DriverObject;
     PVOID Irp;
