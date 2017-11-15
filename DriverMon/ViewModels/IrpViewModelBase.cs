@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Prism.Mvvm;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media;
 
 namespace DriverMon.ViewModels {
     enum IrpType {
@@ -13,7 +15,7 @@ namespace DriverMon.ViewModels {
         Pending
     }
 
-    abstract class IrpViewModelBase {
+    abstract class IrpViewModelBase : BindableBase {
         unsafe public IrpViewModelBase(int index, string driverName, CommonInfoHeader* info) {
             Index = index;
             Time = new DateTime(info->Time);
@@ -36,5 +38,13 @@ namespace DriverMon.ViewModels {
         public bool HasData => DataSize > 0;
         public string ProcessName { get; protected set; }
         public string Function { get; protected set; }
+
+        private Brush _background;
+
+        public Brush Background {
+            get => _background; 
+            set => SetProperty(ref _background, value);
+        }
+
     }
 }

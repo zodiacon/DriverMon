@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 namespace DriverMon.ViewModels {
     class IrpCompletedViewModel : IrpViewModelBase {
         const uint StatusCancelled = 0xC0000120;
+        const uint StatusPending = 0x103;
 
         IrpArrivedViewModel _arrived;
         unsafe public IrpCompletedViewModel(int index, IrpCompletedInfo* info, IrpArrivedViewModel arrived) : base(index, arrived?.DriverName, &info->Header) {
@@ -15,9 +16,10 @@ namespace DriverMon.ViewModels {
             Information = info->Information.ToInt64();
             Details = $"Status: 0x{Status:X}; Information=0x{Information:X}";
 
-            if (Status == 0x103) {  // STATUS_PENDING
+            if (Status == StatusPending) {
                 IrpType = IrpType.Pending;
                 Icon = "/icons/clock.ico";
+                Details = "PENDING";
             }
             else if (Status >= 0) {
                 IrpType = IrpType.CompleteSuccess;
