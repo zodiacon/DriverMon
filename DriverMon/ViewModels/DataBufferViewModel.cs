@@ -1,11 +1,14 @@
 ﻿using BufferManager;
 using HexEditControl;
+using Prism.Commands;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
 using Zodiacon.WPF;
 
 namespace DriverMon.ViewModels {
@@ -99,5 +102,19 @@ namespace DriverMon.ViewModels {
                     _editor.BytesPerLine = 64;
             }
         }
+
+        public ICommand ExportCommand => new DelegateCommand(() => {
+            var ui = App.MainViewModel.UI;
+            var filename = ui.FileDialogService.GetFileForSave();
+            if (filename != null) {
+                try {
+                    var count = (int)_editor.BufferManager.Size;
+                    File.WriteAllBytes(filename, _editor.BufferManager.GetBytes(0, ref count));
+                }
+                catch (IOException ex) {
+                    ui.MessageBoxService.ShowMessage($"Error: {ex.Message}", App.Title);
+                }
+            }
+        });
     }
 }

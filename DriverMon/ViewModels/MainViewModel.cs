@@ -24,7 +24,7 @@ using DriverMon.Models;
 namespace DriverMon.ViewModels {
     class MainViewModel : BindableBase, IDisposable {
         DriverInterface _driver;
-        readonly IUIServices UI;
+        public readonly IUIServices UI;
         readonly ObservableCollection<IrpViewModelBase> _requests = new ObservableCollection<IrpViewModelBase>();
         readonly Dictionary<IntPtr, DriverViewModel> _driversd = new Dictionary<IntPtr, DriverViewModel>(8);
         readonly Dictionary<IntPtr, IrpArrivedViewModel> _irps = new Dictionary<IntPtr, IrpArrivedViewModel>(64);

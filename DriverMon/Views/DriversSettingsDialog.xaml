@@ -5,6 +5,7 @@
         xmlns:metro="http://metro.mahapps.com/winfx/xaml/controls"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:sf="http://schemas.syncfusion.com/wpf"
+                   xmlns:z="http://zodiacon.wpf/2016"
         xmlns:local="clr-namespace:DriverMon.Views"
         xmlns:c="clr-namespace:DriverMon.Controls"
         mc:Ignorable="d" TitleCaps="False" Icon="/icons/drivers.ico"
@@ -19,7 +20,7 @@
             <RowDefinition Height="20" />
         </Grid.RowDefinitions>
         <TextBox Text="{Binding FilterText, Delay=100, UpdateSourceTrigger=PropertyChanged}" Width="300" Margin="2" HorizontalAlignment="Left"
-                 metro:TextBoxHelper.Watermark="Type to filter" metro:TextBoxHelper.ClearTextButton="True"/>
+                 metro:TextBoxHelper.Watermark="Type to filter" metro:TextBoxHelper.ClearTextButton="True" z:FocusProperties.FocusOnLoad="True" />
         <sf:SfDataGrid Grid.Row="1" ItemsSource="{Binding Drivers}" AutoGenerateColumns="False" SelectionMode="Single" Loaded="OnGridLoaded"
                        NavigationMode="Row" Style="{StaticResource SfDataGridStyle}" BindableView="{Binding View, Mode=OneWayToSource}">
             <sf:SfDataGrid.Columns>

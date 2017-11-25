@@ -36,6 +36,13 @@
             <RadioButton IsChecked="{Binding Is32Bytes}" GroupName="BytesPerLine" Content="32" ContentTemplate="{StaticResource numberTemplate}" />
             <RadioButton IsChecked="{Binding Is48Bytes}" GroupName="BytesPerLine" Content="48" ContentTemplate="{StaticResource numberTemplate}" />
             <RadioButton IsChecked="{Binding Is64Bytes}" GroupName="BytesPerLine" Content="64" ContentTemplate="{StaticResource numberTemplate}" />
+            <Separator />
+            <Button Command="{Binding ExportCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <Image Source="/icons/save.ico" Width="20" Height="20" />
+                    <TextBlock Text="Export..." Margin="4,0,0,0" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
         </ToolBar>
         <hex:HexEdit Grid.Row="2" HexEditor="{Binding Editor, Mode=OneWayToSource}" />
     </Grid>
