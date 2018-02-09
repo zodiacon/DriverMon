@@ -494,49 +494,61 @@ void RemoveAllDrivers() {
 NTSTATUS GetDataFromIrp(PDEVICE_OBJECT DeviceObject, PIRP Irp, PIO_STACK_LOCATION stack, IrpMajorCode code, PVOID buffer, ULONG size, bool output) {
 	__try {
 		switch (code) {
-			case IrpMajorCode::WRITE:
-			case IrpMajorCode::READ:
-				if (Irp->MdlAddress) {
-					auto p = MmGetSystemAddressForMdlSafe(Irp->MdlAddress, NormalPagePriority);
-					if (p) {
-						::memcpy(buffer, p, size);
-						return STATUS_SUCCESS;
-					}
-					return STATUS_INSUFFICIENT_RESOURCES;
-				}
-				if (DeviceObject->Flags & DO_BUFFERED_IO) {
-					::memcpy(buffer, Irp->AssociatedIrp.SystemBuffer, size);
+		case IrpMajorCode::WRITE:
+		case IrpMajorCode::READ:
+			if (Irp->MdlAddress) {
+				auto p = MmGetSystemAddressForMdlSafe(Irp->MdlAddress, NormalPagePriority);
+				if (p) {
+					::memcpy(buffer, p, size);
 					return STATUS_SUCCESS;
 				}
-				::memcpy(buffer, Irp->UserBuffer, size);
+				return STATUS_INSUFFICIENT_RESOURCES;
+			}
+			if (DeviceObject->Flags & DO_BUFFERED_IO) {
+				if (!Irp->AssociatedIrp.SystemBuffer) {
+					return STATUS_INVALID_PARAMETER;
+				}
+				::memcpy(buffer, Irp->AssociatedIrp.SystemBuffer, size);
 				return STATUS_SUCCESS;
+			}
+			if (!Irp->UserBuffer) {
+				return STATUS_INVALID_PARAMETER;
+			}
+			::memcpy(buffer, Irp->UserBuffer, size);
+			return STATUS_SUCCESS;
 
-			case IrpMajorCode::DEVICE_CONTROL:
-			case IrpMajorCode::INTERNAL_DEVICE_CONTROL:
-				auto controlCode = stack->Parameters.DeviceIoControl.IoControlCode;
-				if (METHOD_FROM_CTL_CODE(controlCode) == METHOD_NEITHER) {
-					if (stack->Parameters.DeviceIoControl.Type3InputBuffer < (PVOID)(1 << 16)) {
-						::memcpy(buffer, stack->Parameters.DeviceIoControl.Type3InputBuffer, size);
+		case IrpMajorCode::DEVICE_CONTROL:
+		case IrpMajorCode::INTERNAL_DEVICE_CONTROL:
+			auto controlCode = stack->Parameters.DeviceIoControl.IoControlCode;
+			if (METHOD_FROM_CTL_CODE(controlCode) == METHOD_NEITHER) {
+				if (stack->Parameters.DeviceIoControl.Type3InputBuffer < (PVOID)(1 << 16)) {
+					::memcpy(buffer, stack->Parameters.DeviceIoControl.Type3InputBuffer, size);
+				}
+				else {
+					return STATUS_UNSUCCESSFUL;
+				}
+			}
+			else {
+				if (!output || METHOD_FROM_CTL_CODE(controlCode) == METHOD_BUFFERED) {
+					if (!Irp->AssociatedIrp.SystemBuffer) {
+						return STATUS_INVALID_PARAMETER;
+					}
+					::memcpy(buffer, Irp->AssociatedIrp.SystemBuffer, size);
+				}
+				else {
+					if (!Irp->MdlAddress) {
+						return STATUS_INVALID_PARAMETER;
+					}
+					auto data = MmGetSystemAddressForMdlSafe(Irp->MdlAddress, NormalPagePriority);
+					if (data) {
+						::memcpy(buffer, data, size);
 					}
 					else {
 						return STATUS_UNSUCCESSFUL;
 					}
 				}
-				else {
-					if (!output || METHOD_FROM_CTL_CODE(controlCode) == METHOD_BUFFERED) {
-						::memcpy(buffer, Irp->AssociatedIrp.SystemBuffer, size);
-					}
-					else {
-						auto data = MmGetSystemAddressForMdlSafe(Irp->MdlAddress, NormalPagePriority);
-						if (data) {
-							::memcpy(buffer, data, size);
-						}
-						else {
-							return STATUS_UNSUCCESSFUL;
-						}
-					}
-				}
-				return STATUS_SUCCESS;
+			}
+			return STATUS_SUCCESS;
 		}
 	}
 	__except (EXCEPTION_EXECUTE_HANDLER) {
