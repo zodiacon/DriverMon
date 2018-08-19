@@ -8,8 +8,11 @@ using System.Threading.Tasks;
 namespace DriverMon.ViewModels {
     class DriverViewModel : BindableBase {
         public string Name { get; }
-        public DriverViewModel(string name) {
+		public string Directory { get; }
+
+        public DriverViewModel(string name, string directory) {
             Name = name;
+			Directory = directory;
         }
 
         public string DisplayName { get; set; }

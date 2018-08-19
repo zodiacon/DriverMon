@@ -22,22 +22,25 @@ namespace DriverMon.ViewModels {
         public List<DriverViewModel> Drivers {
             get {
                 if (_drivers == null) {
-                    var drivers = Helpers.GetDriversFromObjectManager();
-                    _drivers = new List<DriverViewModel>(256);
-                    foreach (var name in drivers) {
-                        var displayName = string.Empty;
-                        try {
-                            using (var svc = new ServiceController(name)) {
-                                displayName = svc.DisplayName;
-                            }
-                        }
-                        catch (Exception) {
-                        }
-                        _drivers.Add(new DriverViewModel(name) {
-                            DisplayName = displayName,
-                            IsMonitored = _existingDrivers != null && _existingDrivers.TryGetValue(name, out var vm) ? vm.IsMonitored : false 
-                        });
-                    }
+					_drivers = new List<DriverViewModel>(256);
+					var directories = new string[] { @"\driver", @"\filesystem" };
+					foreach (var dir in directories) {
+						var drivers = Helpers.GetDriversFromObjectManager(dir);
+						foreach (var name in drivers) {
+							var displayName = string.Empty;
+							try {
+								using (var svc = new ServiceController(name)) {
+									displayName = svc.DisplayName;
+								}
+							}
+							catch (Exception) {
+							}
+							_drivers.Add(new DriverViewModel(name, dir) {
+								DisplayName = displayName,
+								IsMonitored = _existingDrivers != null && _existingDrivers.TryGetValue(name, out var vm) ? vm.IsMonitored : false
+							});
+						}
+					}
                     _drivers.Sort((d1, d2) => d1.Name.CompareTo(d2.Name));
                 }
                 return _drivers;

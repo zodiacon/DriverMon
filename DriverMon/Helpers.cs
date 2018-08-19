@@ -20,10 +20,10 @@ namespace DriverMon {
             return reader.ReadObject(stream) as T;
         }
 
-        public unsafe static IEnumerable<string> GetDriversFromObjectManager() {
+        public unsafe static IEnumerable<string> GetDriversFromObjectManager(string folder) {
             var objAttributes = new ObjectAttributes();
             var directoryName = new UnicodeString();
-            string name = @"\driver";
+            string name = folder;
             var buffer = Marshal.AllocCoTaskMem(1 << 16);
             var info = (ObjectDirectoryInformation*)buffer.ToPointer();
             var drivers = new List<string>(128);
