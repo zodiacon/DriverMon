@@ -231,7 +231,7 @@ NTSTATUS AddDriver(PCWSTR driverName, PVOID* driverObject) {
 	if (!NT_SUCCESS(status))
 		return status;
 
-	::wcscpy(globals.Drivers[index].DriverName, driverName);
+	::wcscpy_s(globals.Drivers[index].DriverName, driverName);
 
 	for (int i = 0; i <= IRP_MJ_MAXIMUM_FUNCTION; i++) {
 		globals.Drivers[index].MajorFunction[i] = static_cast<PDRIVER_DISPATCH>(
