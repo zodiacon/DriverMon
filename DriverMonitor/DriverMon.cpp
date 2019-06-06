@@ -227,7 +227,8 @@ NTSTATUS AddDriver(PCWSTR driverName, PVOID* driverObject) {
 	UNICODE_STRING name;
 	RtlInitUnicodeString(&name, driverName);
 	PDRIVER_OBJECT driver;
-	auto status = ObReferenceObjectByName(&name, OBJ_CASE_INSENSITIVE, nullptr, 0, *IoDriverObjectType, KernelMode, nullptr, (PVOID*)&driver);
+	auto status = ObReferenceObjectByName(&name, OBJ_CASE_INSENSITIVE, nullptr, 0, 
+		*IoDriverObjectType, KernelMode, nullptr, (PVOID*)&driver);
 	if (!NT_SUCCESS(status))
 		return status;
 
