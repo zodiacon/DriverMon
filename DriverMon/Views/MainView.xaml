@@ -41,6 +41,8 @@
             <Button ToolTip="Clear All" Command="{Binding ClearAllCommand}">
                 <Image Source="/icons/clearall.ico" Width="32" Height="32" HorizontalAlignment="Center" />
             </Button>
+            <Separator />
+            <Button ToolTip="Export to CSV" Command="{Binding ExportCommand}" Content="Export..." />
         </ToolBar>
         <TextBox Grid.Row="2" Text="{Binding SearchText, Delay=200, UpdateSourceTrigger=PropertyChanged}" metro:TextBoxHelper.ClearTextButton="True"
                  metro:TextBoxHelper.Watermark="Type to filter" Width="400" HorizontalAlignment="Left" Margin="2"/>

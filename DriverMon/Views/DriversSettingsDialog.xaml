@@ -8,7 +8,7 @@
                    xmlns:z="http://zodiacon.wpf/2016"
         xmlns:local="clr-namespace:DriverMon.Views"
         xmlns:c="clr-namespace:DriverMon.Controls"
-        mc:Ignorable="d" TitleCaps="False" Icon="/icons/drivers.ico"
+        mc:Ignorable="d" TitleCharacterCasing="Normal" Icon="/icons/drivers.ico"
         Title="Drivers" Height="500" SizeToContent="Width" ResizeMode="NoResize"
                    BorderBrush="{DynamicResource AccentColorBrush}" BorderThickness="1" WindowStartupLocation="CenterScreen">
     <Grid>

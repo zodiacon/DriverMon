@@ -9,7 +9,7 @@
         xmlns:view="clr-namespace:DriverMon.Views"
         mc:Ignorable="d" Icon="/icons/app.ico"
         Title="DriverMon v0.30, (C)2017 by Pavel Yosifovich" MinHeight="350" MinWidth="480" 
-                     ResizeMode="CanResizeWithGrip" TitleCaps="False"
+                     ResizeMode="CanResizeWithGrip" TitleCharacterCasing="Normal"
                    BorderBrush="{DynamicResource AccentColorBrush}" BorderThickness="1">
     <metro:MetroWindow.RightWindowCommands>
         <metro:WindowCommands>

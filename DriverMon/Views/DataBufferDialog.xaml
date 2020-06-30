@@ -7,7 +7,7 @@
         xmlns:hex="clr-namespace:HexEditControl;assembly=HexEditControl"
         xmlns:local="clr-namespace:DriverMon.Views"
         mc:Ignorable="d"
-        Title="{Binding Title}" MinHeight="300" Height="450" SizeToContent="Width" MinWidth="600" TitleCaps="False" Icon="/icons/view.ico"
+        Title="{Binding Title}" MinHeight="300" Height="450" SizeToContent="Width" MinWidth="600" TitleCharacterCasing="Normal" Icon="/icons/view.ico"
                    BorderBrush="{DynamicResource AccentColorBrush}" BorderThickness="1" WindowStartupLocation="CenterScreen">
     <Grid>
         <Grid.RowDefinitions>

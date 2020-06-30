@@ -66,7 +66,7 @@ namespace HexEditControl {
 				int line = 0;
 				for (long i = start; i < end; i += bytesPerLine) {
 					var pos = 2 + (i / bytesPerLine) * lineHeight + y;
-					var text = new FormattedText(i.ToString(formatter) + ": ", CultureInfo.InvariantCulture, FlowDirection.LeftToRight, typeface, FontSize, Brushes.Blue);
+					var text = new FormattedText(i.ToString(formatter) + ": ", CultureInfo.InvariantCulture, FlowDirection.LeftToRight, typeface, FontSize, Brushes.Blue, 1);
 					if (text.Width > maxWidth)
 						maxWidth = text.Width;
 					dc.DrawText(text, new Point(2, pos));
@@ -107,7 +107,7 @@ namespace HexEditControl {
 				}
 				_text.Append(converter(bytes, i)).Append(" ");
 			}
-			var text = new FormattedText(_text.ToString(), CultureInfo.InvariantCulture, FlowDirection.LeftToRight, typeface, FontSize, Foreground);
+			var text = new FormattedText(_text.ToString(), CultureInfo.InvariantCulture, FlowDirection.LeftToRight, typeface, FontSize, Foreground, 1);
 //			text.SetForegroundBrush(Brushes.Red, WordSize, WordSize);
 			dc.DrawText(text, new Point(xstart, y));
 
@@ -116,7 +116,7 @@ namespace HexEditControl {
 
 		private double DrawCharacterLine(DrawingContext dc, double x, double y, byte[] bytes, int bytesPerLine, Typeface typeface) {
 			string value = bytes.Aggregate(_text.Clear(), (sb, b) => sb.Append(char.IsControl((char)b) ? '.' : (char)b)).ToString();
-			var text = new FormattedText(value, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, typeface, FontSize, Foreground);
+			var text = new FormattedText(value, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, typeface, FontSize, Foreground, 1);
 			dc.DrawText(text, new Point(x, y));
 			return text.Width;
 		}
